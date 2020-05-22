@@ -20,24 +20,47 @@ import kotlin.random.Random
  */
 class Boid {
 
+    companion object {
+
+        private val geometry = Geometry().apply {
+            vertices = arrayOf(
+                Vector3( 0,  0, -1), // 0 front
+                Vector3( 0,  0,  7), // 1 back
+                Vector3(-2,  0,  0), // 2 left
+                Vector3( 2,  0,  0), // 3 right
+                Vector3( 0,  1,  0), // 4 top
+                Vector3( 0, -1,  0), // 5 bottom
+            )
+
+            faces = arrayOf(
+                Face3(0, 2, 4), // front top left
+                Face3(0, 4, 3), // front top right
+                Face3(0, 5, 2), // front bottom left
+                Face3(0, 3, 5), // front bottom right
+                Face3(4, 2, 1), // back top left
+                Face3(4, 1, 3), // back top right
+                Face3(2, 5, 1), // back bottom left
+                Face3(1, 5, 3), // back bottom right
+            )
+
+            computeFaceNormals()
+        }
+
+        private val material = MeshPhongMaterial().apply { color = Color(0x0000ff) }
+    }
+
     val steerDirection = Vector3()
     private val steerQuaternion = Quaternion()
 
     private var speed = BOID_MAX_SPEED
     private var acceleration = BOID_ACCELERATION
 
-    val obj3D = Mesh(
-            geometry = ConeGeometry(1, 4, 8).apply { rotateX(PI / 2.0) },
-            material = MeshPhongMaterial().apply { color = Color(0x0000ff) }
-    )
+    val obj3D = Mesh(geometry, material)
 
     inline val position get() = obj3D.position
 
     init {
-        val direction = randomDirection()
-        steerDirection.applyAxisAngle(Y_AXIS, direction)
-        steerQuaternion.setFromDirection(steerDirection)
-        obj3D.rotation.y = direction
+        obj3D.rotation.y = randomDirection()
     }
 
     fun setSteerDirection(direction: Vector3) {
@@ -49,7 +72,9 @@ class Boid {
         updateAcceleration()
         updateSpeed(deltaT)
 
-        if (!quaternion.equals(steerQuaternion)) quaternion.rotateTowards(steerQuaternion, deltaT * BOID_ROTATION_SPEED)
+        if (steerDirection.isNoneZero && !quaternion.equals(steerQuaternion)) {
+            quaternion.rotateTowards(steerQuaternion, deltaT * BOID_ROTATION_SPEED)
+        }
 
         translateZ(deltaT * speed)
     }

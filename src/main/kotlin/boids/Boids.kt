@@ -3,14 +3,13 @@ package boids
 import boids.ext.*
 import three.js.*
 import kotlin.browser.window
-import kotlin.math.PI
 
 class Boids {
 
     private val clock = Clock()
     private val camera = PerspectiveCamera(75, window.aspectRatio, CAMERA_NEAR, CAMERA_FAR).apply {
-        position.y = 40
-        position.z = SCENE_SIZE * 0.75
+        position.y = HALF_SCENE_SIZE
+        position.z = SCENE_SIZE
         lookAt(0.0, 0.0, 0.0)
     }
 
@@ -20,6 +19,8 @@ class Boids {
 
     private val flock = Flock(NUM_BOIDS, listOf(
         RemainInSceneBoundariesBehavior,
+        AlignmentBehavior,
+        CohesionBehavior,
         //SeekBehavior,
     ))
 

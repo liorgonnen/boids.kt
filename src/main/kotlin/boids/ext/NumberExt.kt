@@ -3,6 +3,7 @@ package boids.ext
 import kotlin.math.PI
 
 fun Number.toDegrees() = this / PI * 180.0
+fun Number.toRadians() = this / 180.0 * PI
 
 operator fun Number.minus(other: Double) = toDouble() - other
 operator fun Number.plus(other: Double) = toDouble() + other

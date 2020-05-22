@@ -1,8 +1,10 @@
 package boids
 
-import boids.ext.minus
-import boids.ext.plus
+import boids.ext.Z_AXIS
+import boids.ext.compareTo
+import boids.ext.toRadians
 import three.js.Vector3
+import kotlin.random.Random
 
 /**
  * A [Behavior] describes some characteristic that affects a boid's steering behavior.
@@ -19,46 +21,98 @@ import three.js.Vector3
  */
 abstract class Behavior {
 
-    // Prevent object creation
+    /**
+     * Auxiliary object to prevent object creation
+     */
     protected val result = Vector3()
 
-    open fun isEffective(boid: Boid, flock: Array<Boid>) = true
+    /**
+     * If true and this behavior returns a non-zero force, the rest of the behaviors will be discarded
+     */
+    open val overridesLowerPriorityBehaviors = false
 
-    abstract fun getSteeringForce(boid: Boid, flock: Array<Boid>): Vector3
+    open val weight = 1.0
+
+    /**
+     * This function can return false to cancel out this behavior for the given boid
+     * The goal is to make it as lightweight as possible and decide if [getSteeringForce] should be called
+     */
+    open fun isEffective(boid: Boid, neighbors: Sequence<Boid>) = true
+
+    /**
+     * This method will not be called if [isEffective] returns false
+     */
+    abstract fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): Vector3
 }
 
 object WanderBehavior : Behavior() {
 
-    override fun getSteeringForce(boid: Boid, flock: Array<Boid>): Vector3 {
-        TODO("Not yet implemented")
+    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
+        result.applyAxisAngle(Z_AXIS, Random.nextDouble() * 20.0.toRadians())
     }
-
 }
 
 object SeekBehavior : Behavior() {
 
-    override fun getSteeringForce(boid: Boid, flock: Array<Boid>): Vector3 {
+    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): Vector3 {
         result.set(-HALF_SCENE_SIZE, 0, 0).normalize().multiplyScalar(BOID_MAX_SPEED)
         return result
     }
 }
 
-object RemainInSceneBoundariesBehavior : Behavior() {
+object AlignmentBehavior : Behavior() {
 
-    override fun isEffective(boid: Boid, flock: Array<Boid>) = with (boid.position) {
-        x - BOID_MAX_SPEED < -HALF_SCENE_SIZE ||
-        x + BOID_MAX_SPEED > HALF_SCENE_SIZE ||
-        z - BOID_MAX_SPEED < -HALF_SCENE_SIZE ||
-        z + BOID_MAX_SPEED > HALF_SCENE_SIZE
+    override val weight = 1.0
+
+    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): Vector3 {
+        result.set(0, 0, 0)
+
+        var count = 0
+        neighbors.iterator().forEach { neighbor -> result.add(neighbor.steerDirection); count++ }
+
+        return result
+    }
+}
+
+object CohesionBehavior : Behavior() {
+
+    private val averagePosition = Vector3()
+
+    override val weight = 2.0
+
+    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): Vector3 {
+        result.set(0, 0, 0)
+        averagePosition.set(0, 0, 0)
+
+        var count = 0
+        neighbors.iterator().forEach { neighbor -> averagePosition.add(neighbor.position); count++ }
+
+        if (count > 1) {
+            averagePosition.divideScalar(count)
+            result.subVectors(boid.position, averagePosition)
+        }
+
+        return result
     }
 
-    override fun getSteeringForce(boid: Boid, flock: Array<Boid>) = result.also { force ->
+}
+
+object RemainInSceneBoundariesBehavior : Behavior() {
+
+    override val overridesLowerPriorityBehaviors = true
+
+    override fun isEffective(boid: Boid, neighbors: Sequence<Boid>) = with (boid.position) {
+        x < -HALF_SCENE_SIZE || x > HALF_SCENE_SIZE ||
+        z < -HALF_SCENE_SIZE || z > HALF_SCENE_SIZE
+    }
+
+    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.also { force ->
         force.set(0, 0, 0)
         with (boid.position) {
-            if (x - BOID_MAX_SPEED < -HALF_SCENE_SIZE) force.x = 1
-            if (x + BOID_MAX_SPEED > HALF_SCENE_SIZE) force.x = -1
-            if (z - BOID_MAX_SPEED < -HALF_SCENE_SIZE) force.z = 1
-            if (z + BOID_MAX_SPEED > HALF_SCENE_SIZE) force.z = -1
+            if (x < -HALF_SCENE_SIZE) force.x = 1
+            if (x > HALF_SCENE_SIZE) force.x = -1
+            if (z < -HALF_SCENE_SIZE) force.z = 1
+            if (z > HALF_SCENE_SIZE) force.z = -1
         }
     }
 }

@@ -20,6 +20,7 @@ import kotlin.random.Random
  */
 class Boid {
 
+    val steerDirection = Vector3()
     private val steerQuaternion = Quaternion()
 
     private var speed = BOID_MAX_SPEED
@@ -33,11 +34,14 @@ class Boid {
     inline val position get() = obj3D.position
 
     init {
-        steerQuaternion.setFromDirection(Vector3(-1, 0, 0))
-        obj3D.quaternion.copy(steerQuaternion)
+        val direction = randomDirection()
+        steerDirection.applyAxisAngle(Y_AXIS, direction)
+        steerQuaternion.setFromDirection(steerDirection)
+        obj3D.rotation.y = direction
     }
 
     fun setSteerDirection(direction: Vector3) {
+        steerDirection.copy(direction)
         steerQuaternion.setFromDirection(direction)
     }
 
@@ -45,7 +49,7 @@ class Boid {
         updateAcceleration()
         updateSpeed(deltaT)
 
-        if (!quaternion.equals(steerQuaternion)) quaternion.rotateTowards(steerQuaternion, deltaT)
+        if (!quaternion.equals(steerQuaternion)) quaternion.rotateTowards(steerQuaternion, deltaT * BOID_ROTATION_SPEED)
 
         translateZ(deltaT * speed)
     }
@@ -62,5 +66,5 @@ class Boid {
         speed = (speed + acceleration * deltaT).coerceIn(BOID_MIN_SPEED, BOID_MAX_SPEED)
     }
 
-    private fun randomDirection() = Random.nextDouble() * TWO_PI
+    private fun randomDirection() = Random.nextDouble()
 }

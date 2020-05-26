@@ -1,9 +1,12 @@
 package boids
 
+import boids.behaviors.*
 import boids.ext.*
 import three.js.*
 import kotlin.browser.window
+import kotlin.time.ExperimentalTime
 
+@ExperimentalTime
 class Boids {
 
     private val clock = Clock()
@@ -19,6 +22,8 @@ class Boids {
 
     private val flock = Flock(NUM_BOIDS, listOf(
         RemainInSceneBoundariesBehavior,
+        //WanderBehavior,
+        SeparationBehavior,
         AlignmentBehavior,
         CohesionBehavior,
         //SeekBehavior,

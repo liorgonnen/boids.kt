@@ -2,8 +2,54 @@ package boids
 
 import boids.ext.*
 import three.js.*
-import kotlin.math.PI
+import kotlin.math.atan2
 import kotlin.random.Random
+
+class Orientation {
+    private var accumulatedFraction = 0.0
+
+    private var currentValue = 0.0
+        set(value) {
+            accumulatedFraction = 0.0
+            field = value
+        }
+
+    private var targetValue = 0.0
+
+    private var changeSpeed = 1.0
+
+    fun update(fraction: Double) {
+        if (accumulatedFraction < 1.0) accumulatedFraction += fraction
+        if (accumulatedFraction > 1.0) accumulatedFraction = 1.0
+
+        //currentValue +=
+    }
+}
+
+class MotionState {
+    companion object {
+        private val auxVector = Vector3()
+    }
+
+    val position = Vector3()
+    val velocity = Vector3(Random.nextDouble(), 0, Random.nextDouble()).normalize().multiplyScalar(BOID_MAX_SPEED)
+    var orientation = 0.0
+
+    val velocityAsAngle get() = atan2(velocity.x.toDouble(), velocity.z.toDouble())
+
+    private val acceleration = Vector3()
+
+    fun setSteerDirection(direction: Vector3) {
+        acceleration.copy(direction).normalize().multiplyScalar(BOID_MAX_SPEED)
+    }
+
+    fun update(time: Double) {
+        position.add(auxVector.copy(velocity).multiplyScalar(time))
+
+        velocity.add(auxVector.copy(acceleration).multiplyScalar(time))
+        if (velocity.lengthSq() >= BOID_MAX_SPEED_SQR) velocity.normalize().multiplyScalar(BOID_MAX_SPEED)
+    }
+}
 
 /**
  * Thoughts about boid's flight:
@@ -22,10 +68,12 @@ class Boid {
 
     companion object {
 
+        private val NOSE_Z = 7.0
+
         private val geometry = Geometry().apply {
             vertices = arrayOf(
-                Vector3( 0,  0, -1), // 0 front
-                Vector3( 0,  0,  7), // 1 back
+                Vector3( 0,  0, -1), // 0 back
+                Vector3( 0,  0,  NOSE_Z), // 1 front
                 Vector3(-2,  0,  0), // 2 left
                 Vector3( 2,  0,  0), // 3 right
                 Vector3( 0,  1,  0), // 4 top
@@ -33,63 +81,67 @@ class Boid {
             )
 
             faces = arrayOf(
-                Face3(0, 2, 4), // front top left
-                Face3(0, 4, 3), // front top right
-                Face3(0, 5, 2), // front bottom left
-                Face3(0, 3, 5), // front bottom right
-                Face3(4, 2, 1), // back top left
-                Face3(4, 1, 3), // back top right
-                Face3(2, 5, 1), // back bottom left
-                Face3(1, 5, 3), // back bottom right
+                Face3(0, 2, 4), // back top left
+                Face3(0, 4, 3), // back top right
+                Face3(0, 5, 2), // back bottom left
+                Face3(0, 3, 5), // back bottom right
+                Face3(4, 2, 1), // front top left
+                Face3(4, 1, 3), // front top right
+                Face3(2, 5, 1), // front bottom left
+                Face3(1, 5, 3), // front bottom right
             )
 
             computeFaceNormals()
+            computeBoundingSphere()
         }
 
         private val material = MeshPhongMaterial().apply { color = Color(0x0000ff) }
     }
 
-    val steerDirection = Vector3()
-    private val steerQuaternion = Quaternion()
+    val seeAhead = Vector3()
 
-    private var speed = BOID_MAX_SPEED
-    private var acceleration = BOID_ACCELERATION
+    val position get() = obj3D.position
 
-    val obj3D = Mesh(geometry, material)
+    val motionState = MotionState()
 
-    inline val position get() = obj3D.position
+    private val worldDirection = Vector3()
+    private val seeAheadHelper = ArrowHelper(worldDirection, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
 
-    init {
-        obj3D.rotation.y = randomDirection()
+    private val obj3D = Mesh(geometry, material)
+
+    fun addToScene(scene: Scene) {
+        scene.add(obj3D)
+        //scene.add(seeAheadHelper)
     }
 
     fun setSteerDirection(direction: Vector3) {
-        steerDirection.copy(direction)
-        steerQuaternion.setFromDirection(direction)
+        motionState.setSteerDirection(direction)
+    }
+
+    fun preUpdate() {
+        updateSeeAheadVector()
     }
 
     fun update(deltaT: Double) = with (obj3D) {
-        updateAcceleration()
-        updateSpeed(deltaT)
+        motionState.update(deltaT)
 
-        if (steerDirection.isNoneZero && !quaternion.equals(steerQuaternion)) {
-            quaternion.rotateTowards(steerQuaternion, deltaT * BOID_ROTATION_SPEED)
-        }
+        obj3D.position.copy(motionState.position)
 
-        translateZ(deltaT * speed)
+        // TEMP orientation HACK
+        obj3D.rotation.y = motionState.velocityAsAngle
     }
 
-    private fun updateAcceleration() {
-        val angle = steerQuaternion.dotAngle(obj3D.quaternion) // angle will be 0..PI
+     private fun updateSeeAheadVector() {
+         obj3D.getWorldDirection(worldDirection)
+         seeAhead.set(0, 0, NOSE_Z + BOID_SEE_AHEAD_DISTANCE).applyMatrix4(obj3D.matrixWorld)
+         seeAheadHelper.position.set(0, 0, NOSE_Z).applyMatrix4(obj3D.matrixWorld)
+         seeAheadHelper.setDirection(worldDirection)
 
-        val accelerationRange = if (angle <= BOID_MAX_ACCELERATION_ANGLE) BOID_MAX_ACCELERATION_ANGLE else PI - BOID_MAX_ACCELERATION_ANGLE
-        val accelerationFraction = (BOID_MAX_ACCELERATION_ANGLE - angle) / accelerationRange
-        acceleration = BOID_ACCELERATION * accelerationFraction
-    }
+         val outOfScene = seeAhead.z >= HALF_SCENE_SIZE || seeAhead.z < -HALF_SCENE_SIZE ||
+                          seeAhead.x >= HALF_SCENE_SIZE || seeAhead.x < -HALF_SCENE_SIZE
 
-    private fun updateSpeed(deltaT: Double) {
-        speed = (speed + acceleration * deltaT).coerceIn(BOID_MIN_SPEED, BOID_MAX_SPEED)
-    }
+         seeAheadHelper.setColor(if (outOfScene) 0xff0000 else 0x00ff00)
+     }
 
     private fun randomDirection() = Random.nextDouble()
 }

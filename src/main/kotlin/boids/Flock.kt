@@ -1,5 +1,6 @@
 package boids
 
+import boids.behaviors.Behavior
 import boids.ext.compareTo
 import boids.ext.isNoneZero
 import boids.ext.isZero
@@ -20,13 +21,15 @@ class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) {
     fun update(deltaT: Double) = boids.forEach nextBoid@ { boid ->
         totalForce.set(0, 0, 0)
 
+        boid.preUpdate()
+
         // Reset the neighbors sequence to the next boid
         boidNeighbors.boid = boid
 
         behaviors.forEach nextBehavior@ {
             if (!it.isEffective(boid, boidNeighbors)) return@nextBehavior
 
-            val force = it.getSteeringForce(boid, boidNeighbors)
+            val force = it.getSteeringForce(boid, boidNeighbors).normalize()
 
             if (force.isZero) return@nextBehavior
 
@@ -36,7 +39,7 @@ class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) {
                 return@nextBoid
             }
 
-            totalForce.add(force.normalize().multiplyScalar(it.weight))
+            totalForce.add(force.multiplyScalar(it.weight))
         }
 
         if (totalForce.isNoneZero) boid.setSteerDirection(totalForce)
@@ -44,7 +47,7 @@ class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) {
         boid.update(deltaT)
     }
 
-    fun addToScene(scene: Scene) = boids.forEach { scene.add(it.obj3D) }
+    fun addToScene(scene: Scene) = boids.forEach { it.addToScene(scene) }
 }
 
 private class BoidNeighborsSequence(val boids: Array<Boid>, val distance: Double = BOID_SEE_AHEAD_DISTANCE) : Sequence<Boid> {

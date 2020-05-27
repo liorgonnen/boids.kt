@@ -4,6 +4,10 @@ import boids.behaviors.*
 import boids.ext.*
 import three.js.*
 import kotlin.browser.window
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
@@ -21,7 +25,7 @@ class Boids {
     private val gridHelper = GridHelper(SCENE_SIZE, 10, 0x444444, 0x888888)
 
     private val flock = Flock(NUM_BOIDS, listOf(
-        RemainInSceneBoundariesBehavior,
+        //RemainInSceneBoundariesBehavior,
         //WanderBehavior,
         SeparationBehavior,
         AlignmentBehavior,
@@ -36,6 +40,17 @@ class Boids {
         flock.addToScene(this)
 
         add(gridHelper)
+
+//        val r = HALF_SCENE_SIZE
+//        val count = 30
+//        for (angle in 0 until 360 step 360/count) {
+//            val mesh = Mesh(CircleGeometry(2.0), MeshPhongMaterial().apply { color = Color(angle / 360.0 / 0.6 + 0.4, 0, 0) })
+//            mesh.position.x = r * sin(angle.toRadians())
+//            mesh.position.z = r * cos(angle.toRadians())
+//            mesh.rotation.x = -PI / 2.0
+//            console.log("a=$angle a*=${mesh.position.asAngle().toDegrees().roundToInt()}")
+//            add(mesh)
+//        }
     }
 
     init {

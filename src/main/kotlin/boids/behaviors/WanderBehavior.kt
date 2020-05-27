@@ -1,6 +1,7 @@
 package boids.behaviors
 
 import boids.Boid
+import boids.ext.asAngle
 import boids.ext.randomAngle
 import boids.ext.setXZFromAngle
 import boids.ext.toRadians
@@ -24,7 +25,7 @@ object WanderBehavior : Behavior() {
     }
 
     override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
-        var angle = boid.motionState.velocityAsAngle
+        var angle = boid.motionState.velocity.asAngle()
         angle += randomAngle(30.0.toRadians())
         setXZFromAngle(angle)
     }

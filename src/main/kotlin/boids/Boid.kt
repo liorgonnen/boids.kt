@@ -2,54 +2,7 @@ package boids
 
 import boids.ext.*
 import three.js.*
-import kotlin.math.atan2
 import kotlin.random.Random
-
-class Orientation {
-    private var accumulatedFraction = 0.0
-
-    private var currentValue = 0.0
-        set(value) {
-            accumulatedFraction = 0.0
-            field = value
-        }
-
-    private var targetValue = 0.0
-
-    private var changeSpeed = 1.0
-
-    fun update(fraction: Double) {
-        if (accumulatedFraction < 1.0) accumulatedFraction += fraction
-        if (accumulatedFraction > 1.0) accumulatedFraction = 1.0
-
-        //currentValue +=
-    }
-}
-
-class MotionState {
-    companion object {
-        private val auxVector = Vector3()
-    }
-
-    val position = Vector3()
-    val velocity = Vector3(Random.nextDouble(), 0, Random.nextDouble()).normalize().multiplyScalar(BOID_MAX_SPEED)
-    var orientation = 0.0
-
-    val velocityAsAngle get() = atan2(velocity.x.toDouble(), velocity.z.toDouble())
-
-    private val acceleration = Vector3()
-
-    fun setSteerDirection(direction: Vector3) {
-        acceleration.copy(direction).normalize().multiplyScalar(BOID_MAX_SPEED)
-    }
-
-    fun update(time: Double) {
-        position.add(auxVector.copy(velocity).multiplyScalar(time))
-
-        velocity.add(auxVector.copy(acceleration).multiplyScalar(time))
-        if (velocity.lengthSq() >= BOID_MAX_SPEED_SQR) velocity.normalize().multiplyScalar(BOID_MAX_SPEED)
-    }
-}
 
 /**
  * Thoughts about boid's flight:
@@ -64,9 +17,13 @@ class MotionState {
  * When a boid needs to change its steering direction it will decelerate. The bigger the angle between the boids
  * current direction and its new steering direction, the more it will decelerate
  */
-class Boid {
+class Boid(position: Vector3? = null, angle: Double = 0.0) {
 
     companion object {
+
+        private var count = 0
+
+        private fun uniqueId() = count.apply { count++ }
 
         private val NOSE_Z = 7.0
 
@@ -98,11 +55,13 @@ class Boid {
         private val material = MeshPhongMaterial().apply { color = Color(0x0000ff) }
     }
 
+    val id = uniqueId()
+
     val seeAhead = Vector3()
 
     val position get() = obj3D.position
 
-    val motionState = MotionState()
+    val motionState = MotionState(position, angle)
 
     private val worldDirection = Vector3()
     private val seeAheadHelper = ArrowHelper(worldDirection, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
@@ -128,7 +87,7 @@ class Boid {
         obj3D.position.copy(motionState.position)
 
         // TEMP orientation HACK
-        obj3D.rotation.y = motionState.velocityAsAngle
+        obj3D.rotation.y = motionState.velocity.asAngle()
     }
 
      private fun updateSeeAheadVector() {

@@ -25,7 +25,7 @@ object WanderBehavior : Behavior() {
     }
 
     override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
-        var angle = boid.motionState.velocity.asAngle()
+        var angle = boid.motionState.headingAngle
         angle += randomAngle(30.0.toRadians())
         setXZFromAngle(angle)
     }

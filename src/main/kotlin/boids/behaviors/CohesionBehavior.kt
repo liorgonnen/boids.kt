@@ -22,10 +22,9 @@ object CohesionBehavior : Behavior() {
             count++
         }
 
-        if (count > 0) {
+        if (count >= 1) {
             averagePosition.divideScalar(count)
-            subVectors(averagePosition, boid.position).normalize().multiplyScalar(BOID_MAX_ACCELERATION)
+            subVectors(averagePosition, boid.position)
         }
     }
-
 }

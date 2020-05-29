@@ -12,17 +12,19 @@ const val CAMERA_FAR = SCENE_SIZE * 2
 const val NUM_BOIDS = 2
 
 // Must be smaller than [BOID_SEE_AHEAD_DISTANCE]
-const val BOID_MIN_DISTANCE = 8.0
+const val BOID_MIN_DISTANCE = 10.0
 
 // Must be larger than [BOID_MIN_DISTANCE]
-const val BOID_SEE_AHEAD_DISTANCE = 10.0
+const val BOID_SEE_AHEAD_DISTANCE = 15.0
 
-const val BOID_MIN_SPEED = 10.0
+const val BOID_MIN_SPEED = 17.0
 const val BOID_MAX_SPEED = 20.0
 const val BOID_MAX_SPEED_SQR = BOID_MAX_SPEED * BOID_MAX_SPEED
 const val BOID_MAX_ACCELERATION = 0.8 * BOID_MAX_SPEED
-const val BOID_ROTATION_SPEED = 1.5
-const val BOID_VISIBLE_REGION = 1.5 * PI
+const val BOID_ROTATION_SPEED = PI / 2.0
+const val BOID_VISIBLE_REGION = PI * 1.5
+
+const val BOID_DEFAULT_COLOR = 0x0000ff
 
 /**
  * The maximum angle delta a boid needs steer to while still accelerating.

@@ -8,14 +8,14 @@ import kotlin.math.roundToInt
 
 object RemainInSceneBoundariesBehavior : Behavior() {
 
-    override val overridesLowerPriorityBehaviors = true
+    override val weight = 10.0
 
     override fun isEffective(boid: Boid, neighbors: Sequence<Boid>) =
             boid.seeAhead.x.absValue > HALF_SCENE_SIZE || boid.seeAhead.z.absValue > HALF_SCENE_SIZE
 
     override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): Vector3 {
         result.zero()
-        val angle = boid.motionState.velocity.asAngle()
+        val angle = boid.motionState.headingAngle
         boid.seeAhead.apply {
             when {
                 x < -HALF_SCENE_SIZE -> {

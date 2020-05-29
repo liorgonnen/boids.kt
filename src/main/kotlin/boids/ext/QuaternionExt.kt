@@ -16,6 +16,8 @@ fun Quaternion.setFromDirection(direction: Vector3) = apply {
     setFromUnitVectors(Z_AXIS, auxVec.copy(direction).normalize())
 }
 
+fun Quaternion.onChange(callback: () -> Unit) = apply { _onChangeCallback = callback }
+
 /**
  * Same as [Quaternion.angleTo], but takes care of normalization internally
  */

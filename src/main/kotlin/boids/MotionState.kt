@@ -1,7 +1,10 @@
 package boids
 
+import boids.Math.isInVisibleRange
 import boids.ext.*
+import three.js.Quaternion
 import three.js.Vector3
+import kotlin.math.PI
 
 class MotionState(initialPosition: Vector3?, initialAngle: Double) {
     companion object {
@@ -9,30 +12,47 @@ class MotionState(initialPosition: Vector3?, initialAngle: Double) {
     }
 
     val position = initialPosition ?: Vector3()
-    val velocity = initialAngle.toSpeedVector().normalize().multiplyScalar(BOID_MAX_SPEED)
+
+    private val currentHeading = Quaternion().setFromAxisAngle(Y_AXIS, initialAngle)
+    private val targetHeading = Quaternion().copy(currentHeading)
+
+    val headingDirection = Vector3()
+    var headingAngle = 0.0
+        private set
 
     private val acceleration = Vector3()
+    private val velocity = Vector3().setXZFromAngle(initialAngle).multiplyScalar(BOID_MAX_SPEED)
 
-    fun setSteerDirection(direction: Vector3) {
-        acceleration.copy(direction)//.normalize().multiplyScalar(BOID_MAX_SPEED)
+    init {
+        updateHeadingDirection()
+    }
+
+    fun applySteeringForce(direction: Vector3) {
+        acceleration.copy(direction).multiplyScalar(BOID_MAX_ACCELERATION)
     }
 
     fun update(time: Double) {
-        position.add(auxVector.copy(velocity).multiplyScalar(time))
+        if (acceleration.isNoneZero) {
+            velocity.add(acceleration.multiplyScalar(time))
+            velocity.clampLength(0, BOID_MAX_SPEED)
+        }
 
-        velocity.add(auxVector.copy(acceleration).multiplyScalar(time))
-        if (velocity.lengthSq() >= BOID_MAX_SPEED_SQR) velocity.normalize().multiplyScalar(BOID_MAX_SPEED)
+        targetHeading.setFromDirection(velocity)
+
+        if (!currentHeading.equals(targetHeading)) {
+            currentHeading.rotateTowards(targetHeading, time * BOID_ROTATION_SPEED)
+            updateHeadingDirection()
+        }
+
+        val actualFlightVelocity = velocity.length().toDouble().coerceIn(BOID_MIN_SPEED, BOID_MAX_SPEED)
+
+        position.add(auxVector.copy(headingDirection).multiplyScalar(actualFlightVelocity * time))
     }
 
-    fun isInVisibleRange(target: Vector3, maxDistance: Double): Boolean {
-        val headingAngle = velocity.asAngle()
-        val halfVisibleRegionAngle = BOID_VISIBLE_REGION / 2.0
-        val targetAngle = auxVector.subVectors(position, target).asAngle()
-        val visibleRegionStartAngle = headingAngle - halfVisibleRegionAngle
-        val visibleRegionEndAngle = headingAngle + halfVisibleRegionAngle
-        inline fun targetInAngularRange() = targetAngle.isInAngleRange(visibleRegionStartAngle, visibleRegionEndAngle)
-        inline fun targetInDistance() = position.distanceToSquared(target) <= maxDistance.sqr
+    fun isInVisibleRange(target: Vector3, maxDistance: Double) = isInVisibleRange(headingAngle, position, target, maxDistance)
 
-        return targetInAngularRange() && targetInDistance()
+    private fun updateHeadingDirection() {
+        headingDirection.fromQuaternion(currentHeading).normalize()
+        headingAngle = headingDirection.asAngle()
     }
 }

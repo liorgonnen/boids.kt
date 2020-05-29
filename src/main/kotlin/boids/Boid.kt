@@ -17,7 +17,7 @@ import kotlin.random.Random
  * When a boid needs to change its steering direction it will decelerate. The bigger the angle between the boids
  * current direction and its new steering direction, the more it will decelerate
  */
-class Boid(position: Vector3? = null, angle: Double = 0.0) {
+class Boid(position: Vector3? = null, angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) {
 
     companion object {
 
@@ -52,7 +52,7 @@ class Boid(position: Vector3? = null, angle: Double = 0.0) {
             computeBoundingSphere()
         }
 
-        private val material = MeshPhongMaterial().apply { color = Color(0x0000ff) }
+        private val defaultMaterial = BOID_DEFAULT_COLOR.toMeshPhongMaterial()
     }
 
     val id = uniqueId()
@@ -65,8 +65,9 @@ class Boid(position: Vector3? = null, angle: Double = 0.0) {
 
     private val worldDirection = Vector3()
     private val seeAheadHelper = ArrowHelper(worldDirection, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
+    private val material = if (color == BOID_DEFAULT_COLOR) defaultMaterial else color.toMeshPhongMaterial()
 
-    private val obj3D = Mesh(geometry, material)
+    /*private*/ val obj3D = Mesh(geometry, material)
 
     fun addToScene(scene: Scene) {
         scene.add(obj3D)
@@ -74,7 +75,7 @@ class Boid(position: Vector3? = null, angle: Double = 0.0) {
     }
 
     fun setSteerDirection(direction: Vector3) {
-        motionState.setSteerDirection(direction)
+        motionState.applySteeringForce(direction)
     }
 
     fun preUpdate() {
@@ -87,7 +88,7 @@ class Boid(position: Vector3? = null, angle: Double = 0.0) {
         obj3D.position.copy(motionState.position)
 
         // TEMP orientation HACK
-        obj3D.rotation.y = motionState.velocity.asAngle()
+        obj3D.rotation.y = motionState.headingAngle
     }
 
      private fun updateSeeAheadVector() {

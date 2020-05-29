@@ -1,9 +1,9 @@
 package boids.ext
 
+import boids.BOID_MAX_SPEED
+import three.js.Quaternion
 import three.js.Vector3
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
+import kotlin.math.*
 
 val Vector3.isZero get() = x == 0 && y == 0 && z == 0
 
@@ -15,8 +15,21 @@ inline fun Vector3.zero() = set(0.0, 0.0, 0.0)
  * Angle zero is towards the positive Z-Axis, so actually x serves s the Y-axis, that's why we pass it as the first
  * parameter to [atan2]
  */
-inline fun Vector3.asAngle() = atan2(x.toDouble(), z.toDouble()).let { if (it < 0.0) it + TWO_PI else it }
+inline fun Vector3.asAngle() = atan2(x.toDouble(), z.toDouble()).wrapTo2PI()
 
-fun Vector3.setXZFromAngle(angle: Double) = apply { set(sin(angle), 0, cos(angle)) }
+fun Vector3.setXZFromAngle(angle: Double) = set(sin(angle), 0, cos(angle))
 
-fun Vector3.asString() = "[$x, $y, $z]"
+fun Vector3.asString() = "[${x.truncate(2)}, ${y.truncate(2)}, ${z.truncate(2)}]"
+
+fun Vector3.fromQuaternion(q: Quaternion) = apply {
+    val x = q.x.toDouble()
+    val y = q.y.toDouble()
+    val z = q.z.toDouble()
+    val w = q.w.toDouble()
+    set(2 * (x * z + w * y), 2 * (y * x - w * x), 1 - 2 * (x * x + y * y))
+}
+
+fun Vector3.rotateBy(angle: Double) {
+    val length = this.length()
+    setXZFromAngle((this.asAngle() + angle) % TWO_PI).normalize().multiplyScalar(length)
+}

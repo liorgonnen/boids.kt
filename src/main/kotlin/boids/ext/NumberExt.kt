@@ -1,8 +1,13 @@
 package boids.ext
 
+import boids.BOID_DEFAULT_COLOR
+import three.js.Color
+import three.js.MeshPhongMaterial
 import three.js.Vector3
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 inline val Number.absValue get() = abs(toDouble())
@@ -12,7 +17,6 @@ fun fraction(value: Double, min: Double, max: Double) = (value.coerceIn(min, max
 
 fun Number.toDegrees() = this / PI * 180.0
 fun Number.toRadians() = this * PI / 180.0
-fun Number.sign() = toDouble().let { if (this < 0.0) -1.0 else if (this > 0.0) 1.0 else 0.0 }
 
 operator fun Number.minus(other: Double) = toDouble() - other
 operator fun Number.plus(other: Double) = toDouble() + other
@@ -27,13 +31,28 @@ inline val Double.sqr get() = this * this
 
 fun Double.toSpeedVector() = Vector3().setXZFromAngle(this)
 
-fun Double.wrapTo2PI() = if (this < 0.0) (this + TWO_PI) else if (this > TWO_PI) (this - TWO_PI) else this
+fun Double.wrapTo2PI() = when {
+    this < 0.0 -> (this % TWO_PI) + TWO_PI
+    this > TWO_PI -> (this % TWO_PI)
+    else -> this
+}
 
 fun Double.isInAngleRange(startAngle: Double, endAngle: Double): Boolean {
-    val start = startAngle.wrapTo2PI()
-    val end = endAngle.wrapTo2PI()
-    return if (start < end) this in start..end else this in end..start
+    if (startAngle > endAngle) throw IllegalArgumentException()
+
+    if (startAngle < 0 || endAngle >= TWO_PI) {
+        return this in startAngle.wrapTo2PI()..TWO_PI || (this >= 0.0 && this <= endAngle.wrapTo2PI())
+    }
+
+    return this in startAngle.wrapTo2PI()..endAngle.wrapTo2PI()
 }
 
 fun Double.asRangeFraction(min: Double, max: Double) = fraction(this, min, max)
+
+// For easy printing
+val Double.roundAngleDegrees get() = this.toDegrees().roundToInt()
+
+fun Number.truncate(decimalDigits: Int) = 10.0.pow(decimalDigits).let { pow -> (this.toDouble() * pow).roundToInt() / pow }
+
+fun Number.toMeshPhongMaterial() = let { materialColor -> MeshPhongMaterial().apply { this.color = Color(materialColor) } }
 

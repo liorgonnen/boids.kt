@@ -4,6 +4,8 @@ import boids.BOID_MAX_ACCELERATION
 import boids.Boid
 import boids.ext.zero
 import three.js.Vector3
+import kotlin.math.PI
+import kotlin.math.abs
 
 object AlignmentBehavior : Behavior() {
 
@@ -13,12 +15,14 @@ object AlignmentBehavior : Behavior() {
         zero()
 
         var count = 0
-        neighbors.iterator().forEach {
-            neighbor -> result.add(neighbor.motionState.velocity)
-            count++
-        }
+        neighbors.iterator().forEach { neighbor ->
+            val similarOrientation = abs(neighbor.motionState.headingAngle - boid.motionState.headingAngle) <= PI / 2.0
 
-        normalize().multiplyScalar(BOID_MAX_ACCELERATION)
+            if (similarOrientation) {
+                result.add(neighbor.motionState.headingDirection)
+                count++
+            }
+        }
     }
 }
 

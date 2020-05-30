@@ -1,13 +1,10 @@
 package boids
 
-import boids.behaviors.RemainInSceneBoundariesBehavior
-import boids.behaviors.SeparationBehavior
 import boids.ext.*
 import three.js.*
 import kotlin.browser.window
 import kotlin.math.PI
 import kotlin.math.cos
-import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.time.ExperimentalTime
 

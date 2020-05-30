@@ -1,9 +1,10 @@
 package boids.ext
 
-import boids.BOID_MAX_SPEED
 import three.js.Quaternion
 import three.js.Vector3
-import kotlin.math.*
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 val Vector3.isZero get() = x == 0 && y == 0 && z == 0
 

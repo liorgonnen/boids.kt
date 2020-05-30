@@ -8,10 +8,9 @@ inline fun WebGLRenderer.onResize() {
     setSize(window.innerWidth, window.innerHeight)
 }
 
-fun WebGLRenderer.init(appendDomElement: Boolean = true): WebGLRenderer {
+fun WebGLRenderer.init(appendDomElement: Boolean = true) = apply {
     if (appendDomElement) document.body?.appendChild(domElement)
 
     setSize(window.innerWidth, window.innerHeight)
     setPixelRatio(window.devicePixelRatio)
-    return this
 }

@@ -2,7 +2,6 @@ package boids.ext
 
 import three.js.Quaternion
 import three.js.Vector3
-import kotlin.math.PI
 
 private val auxVec = Vector3()
 private val auxQuaternion = Quaternion()

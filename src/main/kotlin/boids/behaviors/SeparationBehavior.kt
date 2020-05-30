@@ -1,11 +1,12 @@
 package boids.behaviors
 
-import boids.*
-import boids.ext.*
+import boids.BOID_MIN_DISTANCE
+import boids.BOID_SEE_AHEAD_DISTANCE
+import boids.Boid
+import boids.ext.asRangeFraction
+import boids.ext.zero
 import three.js.Vector3
-import kotlin.math.PI
-import kotlin.math.abs
-import kotlin.math.roundToInt
+import kotlin.math.pow
 
 object SeparationBehavior : Behavior() {
 
@@ -18,13 +19,12 @@ object SeparationBehavior : Behavior() {
 
         neighbors.iterator().forEach { neighbor ->
             val distance = neighbor.position.distanceTo(boid.position).toDouble()
-            val similarOrientation = abs(neighbor.motionState.headingAngle - boid.motionState.headingAngle) <= PI / 2.0
 
-            if (distance != 0.0 && similarOrientation) {
+            if (distance != 0.0) {
                 direction.subVectors(boid.position, neighbor.position)
 
                 val distanceFraction = distance.asRangeFraction(BOID_MIN_DISTANCE, BOID_SEE_AHEAD_DISTANCE)
-                val decay = 1.0 - distanceFraction.sqr
+                val decay = (distanceFraction - 1.0).pow(4)
                 add(direction.multiplyScalar(decay))
             }
         }

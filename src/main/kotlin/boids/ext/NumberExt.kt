@@ -1,7 +1,7 @@
 package boids.ext
 
-import boids.BOID_DEFAULT_COLOR
 import three.js.Color
+import three.js.LineBasicMaterial
 import three.js.MeshPhongMaterial
 import three.js.Vector3
 import kotlin.math.PI
@@ -54,5 +54,6 @@ val Double.roundAngleDegrees get() = this.toDegrees().roundToInt()
 
 fun Number.truncate(decimalDigits: Int) = 10.0.pow(decimalDigits).let { pow -> (this.toDouble() * pow).roundToInt() / pow }
 
-fun Number.toMeshPhongMaterial() = let { materialColor -> MeshPhongMaterial().apply { this.color = Color(materialColor) } }
+fun Number.toMeshPhongMaterial() = let { materialColor -> MeshPhongMaterial().apply { color = Color(materialColor) } }
+fun Number.toLineBasicMaterial() = let { materialColor -> LineBasicMaterial().apply { color = Color(materialColor) } }
 

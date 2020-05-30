@@ -1,13 +1,14 @@
 package boids
 
-import boids.behaviors.*
-import boids.ext.*
+import boids.behaviors.AlignmentBehavior
+import boids.behaviors.CohesionBehavior
+import boids.behaviors.RemainInSceneBoundariesBehavior
+import boids.behaviors.SeparationBehavior
+import boids.ext.aspectRatio
+import boids.ext.init
+import boids.ext.onResize
 import three.js.*
 import kotlin.browser.window
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.roundToInt
-import kotlin.math.sin
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
@@ -15,8 +16,8 @@ class Boids {
 
     private val clock = Clock()
     private val camera = PerspectiveCamera(75, window.aspectRatio, CAMERA_NEAR, CAMERA_FAR).apply {
-        position.y = HALF_SCENE_SIZE
-        position.z = SCENE_SIZE
+        position.y = HALF_SCENE_SIZE * 0.6
+        position.z = HALF_SCENE_SIZE * 1.4
         lookAt(0.0, 0.0, 0.0)
     }
 

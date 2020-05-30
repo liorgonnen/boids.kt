@@ -10,10 +10,8 @@ import kotlin.math.min
 
 class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) {
 
-    private val count = 20
-
-    private val boids = (0 until count).map { i ->
-        val pos = Vector3(-HALF_SCENE_SIZE + i * (SCENE_SIZE / count), 0, HALF_SCENE_SIZE)
+    private val boids = (0 until NUM_BOIDS).map { i ->
+        val pos = Vector3(-HALF_SCENE_SIZE + i * (SCENE_SIZE / NUM_BOIDS), 0, HALF_SCENE_SIZE)
         val anchor = Vector3(0, 0, -HALF_SCENE_SIZE)
         Boid(position = pos, angle = anchor.sub(pos).asAngle())
     }.toTypedArray()

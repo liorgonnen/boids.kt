@@ -4,7 +4,6 @@ import boids.Math.isInVisibleRange
 import boids.ext.*
 import three.js.Quaternion
 import three.js.Vector3
-import kotlin.math.PI
 
 class MotionState(initialPosition: Vector3?, initialAngle: Double) {
     companion object {

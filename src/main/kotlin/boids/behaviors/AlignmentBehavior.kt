@@ -1,9 +1,7 @@
 package boids.behaviors
 
-import boids.BOID_MAX_ACCELERATION
 import boids.Boid
 import boids.ext.zero
-import three.js.Vector3
 import kotlin.math.PI
 import kotlin.math.abs
 

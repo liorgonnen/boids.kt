@@ -89,6 +89,7 @@ class Boid(position: Vector3? = null, angle: Double = 0.0, color: Int = BOID_DEF
 
         // TEMP orientation HACK
         obj3D.rotation.y = motionState.headingAngle
+        obj3D.rotation.z = motionState.roll
     }
 
      private fun updateSeeAheadVector() {

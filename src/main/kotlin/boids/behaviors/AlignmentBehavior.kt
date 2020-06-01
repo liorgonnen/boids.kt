@@ -14,13 +14,16 @@ object AlignmentBehavior : Behavior() {
 
         var count = 0
         neighbors.iterator().forEach { neighbor ->
-            val similarOrientation = abs(neighbor.motionState.headingAngle - boid.motionState.headingAngle) <= PI / 2.0
+            val similarOrientation = abs(neighbor.motionState.headingAngle - boid.motionState.headingAngle) <= PI
 
             if (similarOrientation) {
-                result.add(neighbor.motionState.headingDirection)
+                add(neighbor.motionState.headingDirection)
                 count++
             }
         }
+
+        // if count is zero- no neighbors. If 1, no need to divide
+        if (count > 1) divideScalar(count)
     }
 }
 

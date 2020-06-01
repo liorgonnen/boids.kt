@@ -1,6 +1,7 @@
 package boids.behaviors
 
 import boids.Boid
+import boids.ext.asString
 import boids.ext.zero
 import three.js.Vector3
 import kotlin.math.PI
@@ -10,7 +11,7 @@ object CohesionBehavior : Behavior() {
 
     private val averagePosition = Vector3()
 
-    override val weight = 3.0
+    override val weight = 1.0
 
     override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
         zero()
@@ -25,9 +26,8 @@ object CohesionBehavior : Behavior() {
             }
         }
 
-        if (count >= 1) {
-            averagePosition.divideScalar(count)
-            subVectors(averagePosition, boid.position)
+        if (count > 0) {
+            subVectors(averagePosition.divideScalar(count), boid.position)
         }
     }
 }

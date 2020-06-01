@@ -17,7 +17,7 @@ class Boids {
     private val clock = Clock()
     private val camera = PerspectiveCamera(75, window.aspectRatio, CAMERA_NEAR, CAMERA_FAR).apply {
         position.y = HALF_SCENE_SIZE * 0.6
-        position.z = HALF_SCENE_SIZE * 1.4
+        position.z = HALF_SCENE_SIZE * 1.5
         lookAt(0.0, 0.0, 0.0)
     }
 

@@ -4,6 +4,9 @@ import boids.Math.isInVisibleRange
 import boids.ext.*
 import three.js.Quaternion
 import three.js.Vector3
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
 
 class MotionState(initialPosition: Vector3?, initialAngle: Double) {
     companion object {
@@ -16,8 +19,15 @@ class MotionState(initialPosition: Vector3?, initialAngle: Double) {
     private val targetHeading = Quaternion().copy(currentHeading)
 
     val headingDirection = Vector3()
+
+    private var previousHeadingAngle = 0.0
     var headingAngle = 0.0
         private set
+
+    var roll = 0.0
+        private set
+
+    private var targetRoll = 0.0
 
     private val acceleration = Vector3()
     private val velocity = Vector3().setXZFromAngle(initialAngle).multiplyScalar(BOID_MAX_SPEED)
@@ -27,7 +37,8 @@ class MotionState(initialPosition: Vector3?, initialAngle: Double) {
     }
 
     fun applySteeringForce(direction: Vector3) {
-        acceleration.copy(direction).multiplyScalar(BOID_MAX_ACCELERATION)
+        acceleration.add(direction.multiplyScalar(BOID_MAX_ACCELERATION)).clampLength(0.0, BOID_MAX_ACCELERATION)
+        //acceleration.copy(direction).multiplyScalar(BOID_MAX_ACCELERATION)
     }
 
     fun update(time: Double) {
@@ -41,7 +52,12 @@ class MotionState(initialPosition: Vector3?, initialAngle: Double) {
         if (!currentHeading.equals(targetHeading)) {
             currentHeading.rotateTowards(targetHeading, time * BOID_ROTATION_SPEED)
             updateHeadingDirection()
+
+            targetRoll = (headingAngle - velocity.asAngle()).coerceIn(-BOID_MAX_ROLL, BOID_MAX_ROLL)
         }
+
+        if (roll < targetRoll) roll = min(roll + time, targetRoll)
+        if (roll > targetRoll) roll = max(roll - time, targetRoll)
 
         val actualFlightVelocity = velocity.length().toDouble().coerceIn(BOID_MIN_SPEED, BOID_MAX_SPEED)
 
@@ -52,6 +68,8 @@ class MotionState(initialPosition: Vector3?, initialAngle: Double) {
 
     private fun updateHeadingDirection() {
         headingDirection.fromQuaternion(currentHeading).normalize()
+
+        previousHeadingAngle = headingAngle
         headingAngle = headingDirection.asAngle()
     }
 }

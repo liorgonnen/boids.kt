@@ -1,7 +1,6 @@
 package boids.behaviors
 
 import boids.Boid
-import boids.ext.asAngle
 import boids.ext.randomAngle
 import boids.ext.setXZFromAngle
 import boids.ext.toRadians

@@ -1,7 +1,52 @@
 package boids.behaviors
 
+import boids.BOID_MAX_ANGULAR_ACCELERATION
 import boids.Boid
+import boids.ext.isZero
+import boids.ext.zero
 import three.js.Vector3
+
+open class SteeringForce(linearAcceleration: Double = 0.0, angularAcceleration: Double = 0.0) {
+
+    val isZero get() = linearAcceleration == 0.0 && angularAcceleration == 0.0
+
+    val isNonZero get() = !isZero
+
+    var linearAcceleration = linearAcceleration
+        set(value) {
+            field = value
+        }
+
+    var angularAcceleration = angularAcceleration
+        set(value) {
+            field = value.coerceIn(-BOID_MAX_ANGULAR_ACCELERATION, BOID_MAX_ANGULAR_ACCELERATION)
+        }
+
+    fun zero() {
+        linearAcceleration = 0.0
+        angularAcceleration = 0.0
+    }
+
+    fun copy(other: SteeringForce) {
+        linearAcceleration = other.linearAcceleration
+        angularAcceleration = other.angularAcceleration
+    }
+
+    fun add(other: SteeringForce) {
+        linearAcceleration += other.linearAcceleration
+        angularAcceleration += other.angularAcceleration
+    }
+
+    fun multiplyScalar(scalar: Double) = apply {
+        linearAcceleration *= scalar
+        angularAcceleration *= scalar
+    }
+
+    fun divideScalar(scalar: Double) = apply {
+        linearAcceleration /= scalar
+        angularAcceleration /= scalar
+    }
+}
 
 /**
  * A [Behavior] describes some characteristic that affects a boid's steering behavior.
@@ -21,7 +66,7 @@ abstract class Behavior {
     /**
      * Auxiliary object to prevent object creation
      */
-    protected val result = Vector3()
+    protected val result = SteeringForce()
 
     /**
      * If true and this behavior returns a non-zero force, the rest of the behaviors will be discarded
@@ -39,5 +84,5 @@ abstract class Behavior {
     /**
      * This method will not be called if [isEffective] returns false
      */
-    abstract fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): Vector3
+    abstract fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): SteeringForce
 }

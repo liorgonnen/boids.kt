@@ -29,6 +29,7 @@ operator fun Double.plus(other: Number) = this + other.toDouble()
 
 inline val Double.sqr get() = this * this
 
+// For debug only. Allocates a new object
 fun Double.toSpeedVector() = Vector3().setXZFromAngle(this)
 
 fun Double.wrapTo2PI() = when {

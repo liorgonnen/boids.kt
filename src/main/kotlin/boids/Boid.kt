@@ -1,7 +1,10 @@
 package boids
 
+import boids.behaviors.SteeringForce
 import boids.ext.*
 import three.js.*
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 /**
@@ -17,7 +20,84 @@ import kotlin.random.Random
  * When a boid needs to change its steering direction it will decelerate. The bigger the angle between the boids
  * current direction and its new steering direction, the more it will decelerate
  */
-class Boid(position: Vector3? = null, angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) {
+class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) {
+
+    val id = uniqueId()
+
+    val seeAhead = Vector3()
+
+    var position: Vector3
+        get() = obj3D.position
+        private set(value) { obj3D.position.copy(value) }
+
+    private val worldDirection = Vector3()
+    private val seeAheadHelper = ArrowHelper(worldDirection, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
+    private val material = if (color == BOID_DEFAULT_COLOR) defaultMaterial else color.toMeshPhongMaterial()
+
+    private val obj3D = Mesh(geometry, material)
+
+    var velocity = BOID_MAX_SPEED
+
+    var headingAngle = angle
+        private set
+
+    var roll = 0.0
+        private set
+
+    private var targetRoll = 0.0
+
+    private var steeringForce = SteeringForce()
+
+    init {
+        this.position = position
+    }
+
+    fun addToScene(scene: Scene) {
+        scene.add(obj3D)
+        //scene.add(seeAheadHelper)
+    }
+
+    fun preUpdate() {
+        updateSeeAheadVector()
+    }
+
+    fun applySteeringForce(force: SteeringForce) {
+        steeringForce.copy(force)
+    }
+
+    fun update(time: Double) = with (obj3D) {
+
+        velocity = (velocity + steeringForce.linearAcceleration * time).coerceIn(BOID_MIN_SPEED, BOID_MAX_SPEED)
+        headingAngle = (headingAngle + steeringForce.angularAcceleration * time).wrapTo2PI()
+
+
+        targetRoll = (steeringForce.angularAcceleration / BOID_MAX_ANGULAR_ACCELERATION) * BOID_MAX_ROLL
+
+        if (roll < targetRoll) roll = min(roll + time, targetRoll)
+        if (roll > targetRoll) roll = max(roll - time, targetRoll)
+
+        // TEMP orientation HACK
+        obj3D.rotation.y = headingAngle
+        obj3D.rotation.z = roll
+
+        translateZ(velocity * time)
+    }
+
+    private fun updateSeeAheadVector() {
+        obj3D.getWorldDirection(worldDirection)
+        seeAhead.set(0, 0, NOSE_Z + BOID_SEE_AHEAD_DISTANCE).applyMatrix4(obj3D.matrixWorld)
+        seeAheadHelper.position.set(0, 0, NOSE_Z).applyMatrix4(obj3D.matrixWorld)
+        seeAheadHelper.setDirection(worldDirection)
+
+        val outOfScene = seeAhead.z >= HALF_SCENE_SIZE || seeAhead.z < -HALF_SCENE_SIZE ||
+                      seeAhead.x >= HALF_SCENE_SIZE || seeAhead.x < -HALF_SCENE_SIZE
+
+        seeAheadHelper.setColor(if (outOfScene) 0xff0000 else 0x00ff00)
+    }
+
+    fun isInVisibleRange(target: Vector3, maxDistance: Double) = Math.isInVisibleRange(headingAngle, position, target, maxDistance)
+
+    fun distanceTo(other: Boid) = position.distanceTo(other.position).toDouble()
 
     companion object {
 
@@ -25,7 +105,9 @@ class Boid(position: Vector3? = null, angle: Double = 0.0, color: Int = BOID_DEF
 
         private fun uniqueId() = count.apply { count++ }
 
-        private val NOSE_Z = 7.0
+        private const val NOSE_Z = 7.0
+
+        private val auxVector = Vector3()
 
         private val geometry = Geometry().apply {
             vertices = arrayOf(
@@ -54,55 +136,4 @@ class Boid(position: Vector3? = null, angle: Double = 0.0, color: Int = BOID_DEF
 
         private val defaultMaterial = BOID_DEFAULT_COLOR.toMeshPhongMaterial()
     }
-
-    val id = uniqueId()
-
-    val seeAhead = Vector3()
-
-    val position get() = obj3D.position
-
-    val motionState = MotionState(position, angle)
-
-    private val worldDirection = Vector3()
-    private val seeAheadHelper = ArrowHelper(worldDirection, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
-    private val material = if (color == BOID_DEFAULT_COLOR) defaultMaterial else color.toMeshPhongMaterial()
-
-    /*private*/ val obj3D = Mesh(geometry, material)
-
-    fun addToScene(scene: Scene) {
-        scene.add(obj3D)
-        //scene.add(seeAheadHelper)
-    }
-
-    fun setSteerDirection(direction: Vector3) {
-        motionState.applySteeringForce(direction)
-    }
-
-    fun preUpdate() {
-        updateSeeAheadVector()
-    }
-
-    fun update(deltaT: Double) = with (obj3D) {
-        motionState.update(deltaT)
-
-        obj3D.position.copy(motionState.position)
-
-        // TEMP orientation HACK
-        obj3D.rotation.y = motionState.headingAngle
-        obj3D.rotation.z = motionState.roll
-    }
-
-     private fun updateSeeAheadVector() {
-         obj3D.getWorldDirection(worldDirection)
-         seeAhead.set(0, 0, NOSE_Z + BOID_SEE_AHEAD_DISTANCE).applyMatrix4(obj3D.matrixWorld)
-         seeAheadHelper.position.set(0, 0, NOSE_Z).applyMatrix4(obj3D.matrixWorld)
-         seeAheadHelper.setDirection(worldDirection)
-
-         val outOfScene = seeAhead.z >= HALF_SCENE_SIZE || seeAhead.z < -HALF_SCENE_SIZE ||
-                          seeAhead.x >= HALF_SCENE_SIZE || seeAhead.x < -HALF_SCENE_SIZE
-
-         seeAheadHelper.setColor(if (outOfScene) 0xff0000 else 0x00ff00)
-     }
-
-    private fun randomDirection() = Random.nextDouble()
 }

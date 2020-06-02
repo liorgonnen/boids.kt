@@ -62,15 +62,14 @@ class DebugPlayground {
 
         window.requestAnimationFrame { animate() }
 
-        boid.motionState.update(deltaT)
-        boid.obj3D.rotation.y += deltaT
+        boid.update(deltaT)
 
         val t = Vector3(0, 0, 1)
         val d = BOID_SEE_AHEAD_DISTANCE
         for (a in 0 until 360) {
             t.z = d * cos(a.toRadians())
             t.x = d * sin(a.toRadians())
-            val visible = Math.isInVisibleRange(boid.obj3D.rotation.y.toDouble(), boid.position, t, d * 1.1)
+            val visible = Math.isInVisibleRange(boid.headingAngle, boid.position, t, d * 1.1)
             indicatorCircles[a] = if (visible) 0x00ff00 else 0xff0000
         }
     }

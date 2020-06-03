@@ -28,3 +28,4 @@ const val BOID_DEFAULT_COLOR = 0x0000ff
 // Alignment
 const val ALIGNMENT_EPSILON = 2.0 / 180.0 * PI
 
+

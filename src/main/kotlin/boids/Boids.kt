@@ -30,20 +30,33 @@ class Boids {
         lookAt(0.0, 0.0, 0.0)
     }
 
-    private var cameraAngle = 0.0
-    private val cameraLookAt = Vector3()
+    private val cameraAnimator = CameraAnimator(camera)
 
     private val renderer = WebGLRenderer().init()
 
-    private val gridHelper = GridHelper(SCENE_SIZE, 10, 0x444444, 0x888888)
+    private val gridHelper = GridHelper(SCENE_SIZE, 10, 0x606060, 0x666666).apply { position.y = 0.1 }
+
+    private val textObjects = TextObjects()
+
+    private val plane = Mesh(
+        geometry = PlaneGeometry(SCENE_SIZE, SCENE_SIZE).apply { rotateX(-HALF_PI) },
+        material = 0x222222.toMeshPhongMaterial().apply { flatShading = true }
+    )
+
+    private val directionalLight = DirectionalLight(0xffffff, 1).apply {
+        position.set(0, 10, -HALF_SCENE_SIZE)
+        target.position.set(5, 0, 0)
+    }
 
     private val scene = Scene().apply {
-        add(DirectionalLight(0xffffff, 1).apply { position.set(-1, 2, 4) })
-        add(AmbientLight(0x404040, 1))
+        add(directionalLight)
+        add(HemisphereLight(0xffffff, 0x666666, 0.8))
+
+        add(plane)
+        add(gridHelper)
 
         flock.addToScene(this)
-
-        add(gridHelper)
+        textObjects.addToScene(this)
     }
 
     init {
@@ -56,19 +69,12 @@ class Boids {
     fun animate() {
         val time = clock.getDelta().toDouble()
 
-        updateCamera(time)
+        cameraAnimator.update(time)
 
         flock.update(time)
 
         renderer.render(scene, camera)
 
         window.requestAnimationFrame { animate() }
-    }
-
-    private fun updateCamera(time: Double) {
-        cameraAngle += time / 20.0
-        camera.position.setXZFromAngle(cameraAngle).multiplyScalar(HALF_SCENE_SIZE).setY(HALF_SCENE_SIZE * 0.2)
-        cameraLookAt.setXZFromAngle(cameraAngle + PI / 2).multiplyScalar(HALF_SCENE_SIZE * 0.2)
-        camera.lookAt(cameraLookAt.x, 0, cameraLookAt.z)
     }
 }

@@ -70,7 +70,6 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
         velocity = (velocity + steeringForce.linearAcceleration * time).coerceIn(BOID_MIN_SPEED, BOID_MAX_SPEED)
         headingAngle = (headingAngle + steeringForce.angularAcceleration * time).wrapTo2PI()
 
-
         targetRoll = (steeringForce.angularAcceleration / BOID_MAX_ANGULAR_ACCELERATION) * BOID_MAX_ROLL
 
         if (roll < targetRoll) roll = min(roll + time, targetRoll)

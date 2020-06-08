@@ -1,42 +1,30 @@
 package boids.behaviors
 
-import boids.Boid
-import boids.HALF_SCENE_SIZE
+import boids.*
 import boids.ext.*
+import three.js.Box3
 import three.js.Vector3
+import kotlin.math.PI
 
-object RemainInSceneBoundariesBehavior : Behavior() {
+object RemainInSceneBoundariesBehavior : AbsCollisionAvoidanceBehavior() {
 
-    private val auxVector = Vector3()
+    private const val WALL_THICKNESS = 100.0
 
-    override val weight = 5.0
+    private const val CENTER_POINT = HALF_SCENE_SIZE + WALL_THICKNESS / 2
+    private val LEFT_CENTER = Vector3(-CENTER_POINT, 0, 0)
+    private val RIGHT_CENTER = Vector3(CENTER_POINT, 0, 0)
+    private val TOP_CENTER = Vector3(0, 0, -CENTER_POINT)
+    private val BOTTOM_CENTER = Vector3(0, 0, CENTER_POINT)
 
-    override fun isEffective(boid: Boid, neighbors: Sequence<Boid>) =
-            boid.seeAhead.x.absValue > HALF_SCENE_SIZE || boid.seeAhead.z.absValue > HALF_SCENE_SIZE
+    private val H_SIZE = Vector3(SCENE_SIZE + WALL_THICKNESS * 2, SCENE_SIZE, WALL_THICKNESS)
+    private val V_SIZE = Vector3(WALL_THICKNESS, SCENE_SIZE, SCENE_SIZE)
 
-    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
-        result.zero()
-        var angle = boid.headingAngle - auxVector.copy(boid.position).negate().asAngle()
+    private val LEFT_WALL = Box3().setFromCenterAndSize(LEFT_CENTER, V_SIZE)
+    private val RIGHT_WALL = Box3().setFromCenterAndSize(RIGHT_CENTER, V_SIZE)
+    private val TOP_WALL = Box3().setFromCenterAndSize(TOP_CENTER, H_SIZE)
+    private val BOTTOM_WALL = Box3().setFromCenterAndSize(BOTTOM_CENTER, H_SIZE)
 
-        boid.seeAhead.apply {
-            when {
-                x < -HALF_SCENE_SIZE -> {
-                    if (angle < DIR_WEST) angle -= HALF_PI else angle += HALF_PI
-                    result.angularAcceleration = angle - boid.headingAngle
-                }
-                x > HALF_SCENE_SIZE -> {
-                    if (angle < DIR_EAST) angle -= HALF_PI else angle += HALF_PI
-                    result.angularAcceleration = angle - boid.headingAngle
-                }
-                z < -HALF_SCENE_SIZE -> {
-                    if (angle > DIR_NORTH) angle += HALF_PI else angle -= HALF_PI
-                    result.angularAcceleration = angle - boid.headingAngle
-                }
-                z > HALF_SCENE_SIZE -> {
-                    if (angle > 0.0) angle += HALF_PI else angle -= HALF_PI
-                    result.angularAcceleration = angle - boid.headingAngle
-                }
-            }
-        }
+    init {
+        arrayOf(LEFT_WALL, RIGHT_WALL, TOP_WALL, BOTTOM_WALL).forEach { add(it) }
     }
 }

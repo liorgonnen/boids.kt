@@ -1,9 +1,6 @@
 package boids.behaviors
 
-import boids.BOID_MAX_SPEED
 import boids.Boid
-import boids.HALF_SCENE_SIZE
-import three.js.Vector3
 
 object SeekBehavior : Behavior() {
 

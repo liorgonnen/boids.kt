@@ -1,26 +1,29 @@
 package boids
 
+import boids.ext.boundingBox
 import boids.ext.plusAssign
 import boids.ext.toMeshPhongMaterial
 import three.js.*
 
-class TextObjects {
+class TextObjects(onChange: ChangeCallback? = null) : Object3DHolder(onChange) {
 
     companion object {
         const val FONT = "fonts/font_montserrat_black.json"
     }
 
-    private val textGroup = Group()
+    override val sceneObject = Group()
 
     init {
         FontLoader().apply { load(FONT, onLoad = ::onFontLoaded) }
     }
 
     private fun onFontLoaded(font: Font) {
-        textGroup += Mesh(createTextGeometry("Boids", font, HALF_SCENE_SIZE / 8, 10), 0xff00ff.toMeshPhongMaterial())
-    }
+        sceneObject += Mesh(createTextGeometry("Boids", font, HALF_SCENE_SIZE / 8, 10), 0xff00ff.toMeshPhongMaterial()).apply {
+            position.set(-boundingBox.max.x.toDouble() / 2, -boundingBox.min.y.toDouble(), 0)
+        }
 
-    fun addToScene(scene: Scene) = scene.add(textGroup)
+        notifySceneObjectUpdated()
+    }
 
     private fun createTextGeometry(
             text: String,
@@ -35,5 +38,6 @@ class TextObjects {
     }).apply {
         computeFaceNormals()
         computeFlatVertexNormals()
+        computeBoundingBox()
     }
 }

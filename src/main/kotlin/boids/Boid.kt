@@ -5,7 +5,6 @@ import boids.ext.*
 import three.js.*
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.random.Random
 
 /**
  * Thoughts about boid's flight:
@@ -20,23 +19,20 @@ import kotlin.random.Random
  * When a boid needs to change its steering direction it will decelerate. The bigger the angle between the boids
  * current direction and its new steering direction, the more it will decelerate
  */
-class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) {
+class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) : Object3DHolder() {
 
     val id = uniqueId()
 
-    val seeAhead = Vector3()
-
     var position: Vector3
-        get() = obj3D.position
-        private set(value) { obj3D.position.copy(value) }
+        get() = sceneObject.position
+        private set(value) { sceneObject.position.copy(value) }
 
-    private val worldDirection = Vector3()
-    private val seeAheadHelper = ArrowHelper(worldDirection, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
+    //private val seeAheadHelper = ArrowHelper(Z_AXIS, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
     private val material = if (color == BOID_DEFAULT_COLOR) defaultMaterial else color.toMeshPhongMaterial()
 
-    private val obj3D = Mesh(geometry, material)
+    override val sceneObject = Mesh(geometry, material)
 
-    var velocity = BOID_MAX_SPEED
+    var velocity = BOID_MAX_VELOCITY
 
     var headingAngle = angle
         private set
@@ -50,48 +46,37 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
 
     init {
         this.position = position
-    }
-
-    fun addToScene(scene: Scene) {
-        scene.add(obj3D)
-        //scene.add(seeAheadHelper)
-    }
-
-    fun preUpdate() {
-        updateSeeAheadVector()
+        //sceneObject += seeAheadHelper
     }
 
     fun applySteeringForce(force: SteeringForce) {
         steeringForce.copy(force)
     }
 
-    fun update(time: Double) = with (obj3D) {
+    fun update(time: Double) {
+        updateVelocityAndHeading(time)
 
-        velocity = (velocity + steeringForce.linearAcceleration * time).coerceIn(BOID_MIN_SPEED, BOID_MAX_SPEED)
-        headingAngle = (headingAngle + steeringForce.angularAcceleration * time).wrapTo2PI()
+        updateRoll(time)
 
+        updateSceneObject(time)
+    }
+
+    private fun updateVelocityAndHeading(time: Double) = with (steeringForce) {
+        velocity = (velocity + linearAcceleration * time).coerceIn(BOID_MIN_VELOCITY, BOID_MAX_VELOCITY)
+        headingAngle = (headingAngle + angularAcceleration * time).wrapTo2PI()
+    }
+
+    private fun updateRoll(time: Double) {
         targetRoll = (steeringForce.angularAcceleration / BOID_MAX_ANGULAR_ACCELERATION) * BOID_MAX_ROLL
 
         if (roll < targetRoll) roll = min(roll + time, targetRoll)
         if (roll > targetRoll) roll = max(roll - time, targetRoll)
-
-        // TEMP orientation HACK
-        obj3D.rotation.y = headingAngle
-        obj3D.rotation.z = roll
-
-        translateZ(velocity * time)
     }
 
-    private fun updateSeeAheadVector() {
-        obj3D.getWorldDirection(worldDirection)
-        seeAhead.set(0, 0, NOSE_Z + BOID_SEE_AHEAD_DISTANCE).applyMatrix4(obj3D.matrixWorld)
-        seeAheadHelper.position.set(0, 0, NOSE_Z).applyMatrix4(obj3D.matrixWorld)
-        seeAheadHelper.setDirection(worldDirection)
-
-        val outOfScene = seeAhead.z >= HALF_SCENE_SIZE || seeAhead.z < -HALF_SCENE_SIZE ||
-                      seeAhead.x >= HALF_SCENE_SIZE || seeAhead.x < -HALF_SCENE_SIZE
-
-        seeAheadHelper.setColor(if (outOfScene) 0xff0000 else 0x00ff00)
+    private fun updateSceneObject(time: Double) = with (sceneObject) {
+        rotation.y = headingAngle
+        rotation.z = roll
+        translateZ(velocity * time)
     }
 
     fun isInVisibleRange(target: Vector3, maxDistance: Double) = Math.isInVisibleRange(headingAngle, position, target, maxDistance)
@@ -105,8 +90,6 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
         private fun uniqueId() = count.apply { count++ }
 
         private const val NOSE_Z = 7.0
-
-        private val auxVector = Vector3()
 
         private val geometry = Geometry().apply {
             vertices = arrayOf(

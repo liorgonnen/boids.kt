@@ -2,11 +2,8 @@ package boids.behaviors
 
 import boids.BOID_MAX_ANGULAR_ACCELERATION
 import boids.Boid
-import boids.ext.isZero
-import boids.ext.zero
-import three.js.Vector3
 
-open class SteeringForce(linearAcceleration: Double = 0.0, angularAcceleration: Double = 0.0) {
+class SteeringForce(linearAcceleration: Double = 0.0, angularAcceleration: Double = 0.0) {
 
     val isZero get() = linearAcceleration == 0.0 && angularAcceleration == 0.0
 

@@ -3,33 +3,37 @@ package boids
 import boids.behaviors.Behavior
 import boids.behaviors.SteeringForce
 import boids.ext.*
+import three.js.Group
 import three.js.Scene
 import three.js.Vector3
 import kotlin.math.min
 
-class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) {
+class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) : Object3DHolder() {
 
-    private val boids = (0 until numBoids).map { i ->
-        val pos = Vector3(-HALF_SCENE_SIZE + i * (SCENE_SIZE / NUM_BOIDS), 3.0, HALF_SCENE_SIZE - i)
-        val anchor = Vector3(0, 0, -HALF_SCENE_SIZE)
-        Boid(position = pos, angle = anchor.sub(pos).asAngle())
-    }.toTypedArray()
+    override val sceneObject = Group()
 
-//    private val boids = arrayOf(
-//        Boid(position = Vector3(-20, 0, HALF_SCENE_SIZE / 2), angle = 160.toRadians()),
-//        Boid(position = Vector3(0, 0, HALF_SCENE_SIZE / 2), angle = 180.toRadians(), color = 0x00ff00),
-//        Boid(position = Vector3(20, 0, HALF_SCENE_SIZE / 2), angle = 200.toRadians()),
-//    )
+//    private val boids = (0 until numBoids).map { i ->
+//        val pos = Vector3(-HALF_SCENE_SIZE + i * (SCENE_SIZE / NUM_BOIDS), 3.0, HALF_SCENE_SIZE - i)
+//        val anchor = Vector3(0, 0, -HALF_SCENE_SIZE)
+//        Boid(position = pos, angle = anchor.sub(pos).asAngle())
+//    }.toTypedArray()
+
+    private val boids = arrayOf(
+        //Boid(position = Vector3(-20, 3, HALF_SCENE_SIZE / 2), angle = 180.toRadians()),
+        Boid(position = Vector3(0, 3, HALF_SCENE_SIZE), angle = 180.toRadians(), color = 0x00ff00),
+        //Boid(position = Vector3(20, 3, HALF_SCENE_SIZE / 2), angle = 200.toRadians()),
+    )
 
     private val boidNeighbors = BoidNeighborsSequence(boids)
 
-    // Util ity to prevent object creation
-    private val totalForce = SteeringForce()
+    private val totalForce = SteeringForce() // Utility to prevent object creation
 
-    fun update(deltaT: Double) = boids.forEach nextBoid@ { boid ->
+    init {
+        boids.forEach { sceneObject.add(it) }
+    }
+
+    fun update(time: Double) = boids.forEach nextBoid@ { boid ->
         totalForce.zero()
-
-        boid.preUpdate()
 
         // Reset the neighbors sequence to the next boid
         boidNeighbors.boid = boid
@@ -43,7 +47,7 @@ class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) {
 
             if (it.overridesLowerPriorityBehaviors) {
                 boid.applySteeringForce(force)
-                boid.update(deltaT)
+                boid.update(time)
                 return@nextBoid
             }
 
@@ -54,15 +58,13 @@ class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) {
             totalForce.add(force.multiplyScalar(it.weight))
         }
 
-        if (totalForce.isNonZero) totalForce.divideScalar(totalWeight)
+        if (totalWeight > 0.0) totalForce.divideScalar(totalWeight)
 
         boid.applySteeringForce(totalForce)
 
-        boid.update(deltaT)
-        boid.confineToScene()
+        boid.update(time)
+        //boid.confineToScene()
     }
-
-    fun addToScene(scene: Scene) = boids.forEach { it.addToScene(scene) }
 
     private fun Boid.confineToScene() {
         with (position) {

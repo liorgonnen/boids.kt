@@ -1,13 +1,9 @@
 package boids
 
-import boids.behaviors.AlignmentBehavior
-import boids.behaviors.CohesionBehavior
-import boids.behaviors.RemainInSceneBoundariesBehavior
-import boids.behaviors.SeparationBehavior
+import boids.behaviors.*
 import boids.ext.*
 import three.js.*
 import kotlin.browser.window
-import kotlin.math.PI
 import kotlin.time.ExperimentalTime
 
 @ExperimentalTime
@@ -16,7 +12,8 @@ class Boids {
     private val clock = Clock()
 
     private val flock = Flock(NUM_BOIDS, listOf(
-        //RemainInSceneBoundariesBehavior,
+        RemainInSceneBoundariesBehavior,
+        CollisionAvoidanceBehavior,
         //WanderBehavior,
         SeparationBehavior,
         AlignmentBehavior,
@@ -36,27 +33,24 @@ class Boids {
 
     private val gridHelper = GridHelper(SCENE_SIZE, 10, 0x606060, 0x666666).apply { position.y = 0.1 }
 
-    private val textObjects = TextObjects()
+    private val textObjects = TextObjects(::onTextObjectsCreated)
 
     private val plane = Mesh(
         geometry = PlaneGeometry(SCENE_SIZE, SCENE_SIZE).apply { rotateX(-HALF_PI) },
         material = 0x222222.toMeshPhongMaterial().apply { flatShading = true }
     )
 
-    private val directionalLight = DirectionalLight(0xffffff, 1).apply {
+    private val light1 = DirectionalLight(0xffffff, 1).apply {
         position.set(0, 10, -HALF_SCENE_SIZE)
         target.position.set(5, 0, 0)
     }
 
+    private val light2 = HemisphereLight(0xffffff, 0x666666, 0.8)
+
     private val scene = Scene().apply {
-        add(directionalLight)
-        add(HemisphereLight(0xffffff, 0x666666, 0.8))
-
-        add(plane)
-        add(gridHelper)
-
-        flock.addToScene(this)
-        textObjects.addToScene(this)
+        add(light1, light2, plane, gridHelper)
+        add(textObjects)
+        add(flock)
     }
 
     init {
@@ -64,6 +58,14 @@ class Boids {
             camera.onResize()
             renderer.onResize()
         }
+    }
+
+    private fun onTextObjectsCreated(what: Object3D) {
+        textObjects.sceneObject.children.forEach { child ->
+            CollisionAvoidanceBehavior.add(child)
+        }
+
+        if (DEBUG) addDebugHelpers()
     }
 
     fun animate() {
@@ -76,5 +78,11 @@ class Boids {
         renderer.render(scene, camera)
 
         window.requestAnimationFrame { animate() }
+    }
+
+    private fun addDebugHelpers() {
+        (CollisionAvoidanceBehavior.obstacles + RemainInSceneBoundariesBehavior.obstacles).forEach { box ->
+            scene += Box3Helper(box, Color(0x00ff00))
+        }
     }
 }

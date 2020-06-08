@@ -1,6 +1,5 @@
 package boids.behaviors
 
-import boids.BOID_MAX_SPEED
 import boids.Boid
 import boids.ext.*
 import three.js.Vector3

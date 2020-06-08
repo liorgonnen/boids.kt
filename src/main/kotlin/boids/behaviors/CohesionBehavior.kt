@@ -1,30 +1,23 @@
 package boids.behaviors
 
+import boids.BOID_SEE_AHEAD_DISTANCE
 import boids.Boid
-import boids.ext.*
+import three.js.Vector
 import three.js.Vector3
 
 object CohesionBehavior : Behavior() {
 
-    private val averagePosition = Vector3()
-    private val predictedNeighborPosition = Vector3()
+    //private val auxVector = Vector3()
 
-    override val weight = 2.0
-
-    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
-        zero()
-        averagePosition.zero()
-
+    override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
         var count = 0
-        neighbors.iterator().forEach { neighbor ->
-            with (neighbor) { predictedNeighborPosition.setXZFromAngle(headingAngle).multiplyScalar(velocity) }
-            averagePosition.add(predictedNeighborPosition).add(neighbor.position)
-            count++
+        neighbors.forEach { neighbor ->
+            if (boid.isInVisibleRange(neighbor.position, BOID_SEE_AHEAD_DISTANCE)) {
+                result.add(neighbor.position)
+                count++
+            }
         }
 
-        if (count > 0) {
-            val targetAngle = averagePosition.divideScalar(count).sub(boid.position).asAngle()
-            result.angularAcceleration = targetAngle - boid.headingAngle
-        }
+        if (count > 0) result.divideScalar(count).sub(boid.position)
     }
 }

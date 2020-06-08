@@ -32,7 +32,7 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
 
     override val sceneObject = Mesh(geometry, material)
 
-    var velocity = BOID_MAX_VELOCITY
+    val velocity = angle.toSpeedVector().multiplyScalar(BOID_MAX_VELOCITY)
 
     var headingAngle = angle
         private set
@@ -51,6 +51,7 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
 
     fun applySteeringForce(force: SteeringForce) {
         steeringForce.copy(force)
+        if (steeringForce.isZero) velocity.multiplyScalar(1.1).clampLength(0, BOID_MAX_VELOCITY)
     }
 
     fun update(time: Double) {
@@ -62,21 +63,24 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
     }
 
     private fun updateVelocityAndHeading(time: Double) = with (steeringForce) {
-        velocity = (velocity + linearAcceleration * time).coerceIn(BOID_MIN_VELOCITY, BOID_MAX_VELOCITY)
-        headingAngle = (headingAngle + angularAcceleration * time).wrapTo2PI()
+        velocity.add(auxVector.copy(acceleration).multiplyScalar(time)).clampLength(0, BOID_MAX_VELOCITY)
+        headingAngle = velocity.asAngle()
+        zero()
     }
 
     private fun updateRoll(time: Double) {
-        targetRoll = (steeringForce.angularAcceleration / BOID_MAX_ANGULAR_ACCELERATION) * BOID_MAX_ROLL
-
-        if (roll < targetRoll) roll = min(roll + time, targetRoll)
-        if (roll > targetRoll) roll = max(roll - time, targetRoll)
+//        targetRoll = (steeringForce.angularAcceleration / BOID_MAX_ANGULAR_ACCELERATION) * BOID_MAX_ROLL
+//
+//        if (roll < targetRoll) roll = min(roll + time, targetRoll)
+//        if (roll > targetRoll) roll = max(roll - time, targetRoll)
     }
 
     private fun updateSceneObject(time: Double) = with (sceneObject) {
+
+        position.add(auxVector.copy(velocity).multiplyScalar(time))
         rotation.y = headingAngle
-        rotation.z = roll
-        translateZ(velocity * time)
+        //rotation.z = roll
+        //translateZ(headingAngle * velocity.length().toDouble() * time)
     }
 
     fun isInVisibleRange(target: Vector3, maxDistance: Double) = Math.isInVisibleRange(headingAngle, position, target, maxDistance)
@@ -88,6 +92,8 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
         private var count = 0
 
         private fun uniqueId() = count.apply { count++ }
+
+        private val auxVector = Vector3()
 
         private const val NOSE_Z = 7.0
 

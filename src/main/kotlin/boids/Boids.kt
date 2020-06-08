@@ -13,7 +13,7 @@ class Boids {
 
     private val flock = Flock(NUM_BOIDS, listOf(
         RemainInSceneBoundariesBehavior,
-        CollisionAvoidanceBehavior,
+        //CollisionAvoidanceBehavior,
         //WanderBehavior,
         SeparationBehavior,
         AlignmentBehavior,
@@ -22,8 +22,8 @@ class Boids {
     ))
 
     private val camera = PerspectiveCamera(75, window.aspectRatio, CAMERA_NEAR, CAMERA_FAR).apply {
-        position.y = HALF_SCENE_SIZE * 0.5
-        position.z = HALF_SCENE_SIZE
+        position.y = HALF_SCENE_SIZE
+        position.z = HALF_SCENE_SIZE * 1.5
         lookAt(0.0, 0.0, 0.0)
     }
 
@@ -61,28 +61,18 @@ class Boids {
     }
 
     private fun onTextObjectsCreated(what: Object3D) {
-        textObjects.sceneObject.children.forEach { child ->
-            CollisionAvoidanceBehavior.add(child)
-        }
-
-        if (DEBUG) addDebugHelpers()
+        textObjects.sceneObject.children.forEach { CollisionAvoidanceBehavior.add(it) }
     }
 
     fun animate() {
         val time = clock.getDelta().toDouble()
 
-        cameraAnimator.update(time)
+        cameraAnimator.update(time, flock.centerOfGravity)
 
         flock.update(time)
 
         renderer.render(scene, camera)
 
         window.requestAnimationFrame { animate() }
-    }
-
-    private fun addDebugHelpers() {
-        (CollisionAvoidanceBehavior.obstacles + RemainInSceneBoundariesBehavior.obstacles).forEach { box ->
-            scene += Box3Helper(box, Color(0x00ff00))
-        }
     }
 }

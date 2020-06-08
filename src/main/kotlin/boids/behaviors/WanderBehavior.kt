@@ -1,9 +1,7 @@
 package boids.behaviors
 
 import boids.Boid
-import boids.ext.randomAngle
-import boids.ext.setXZFromAngle
-import boids.ext.toRadians
+import three.js.Vector3
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 
@@ -15,7 +13,7 @@ object WanderBehavior : Behavior() {
 
     private fun timeNow() = timeMark.elapsedNow().inMilliseconds
 
-    override fun isEffective(boid: Boid, neighbors: Sequence<Boid>): Boolean {
+    override fun isEffective(boid: Boid): Boolean {
         val timeNow = timeNow()
         val effective = timeNow - lastUpdateTime > 500L
         if (effective) lastUpdateTime = timeNow
@@ -23,7 +21,7 @@ object WanderBehavior : Behavior() {
         return effective
     }
 
-    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
+    override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
 //        var angle = boid.motionState.headingAngle
 //        angle += randomAngle(30.0.toRadians())
 //        setXZFromAngle(angle)

@@ -14,22 +14,22 @@ import kotlin.math.pow
 
 object SeparationBehavior : Behavior() {
 
-    private val direction = Vector3()
-
-    override val weight = 1.0
-
     private val auxVector = Vector3()
-    private val predictedNeighborPosition = Vector3()
 
-    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>) = result.apply {
-        zero()
-        auxVector.zero()
+    override val weight = 2.0
 
-        neighbors.minBy { it.distanceTo(boid) }?.let { nearestBoid ->
-            val distance = boid.distanceTo(nearestBoid)
-            val distanceFraction = distance.asRangeFraction(BOID_MIN_DISTANCE, BOID_MIN_DISTANCE * 2)
-            val decay = (distanceFraction - 1.0).pow(4)
-            result.angularAcceleration = (auxVector.copy(boid.position).sub(nearestBoid.position).asAngle() - boid.headingAngle) * decay
+    override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
+        var count = 0
+        neighbors.forEach { neighbor ->
+            val distance = boid.distanceTo(neighbor)
+            if (distance < BOID_MIN_DISTANCE) {
+                val distanceFraction = distance.asRangeFraction(BOID_MIN_DISTANCE, BOID_MIN_DISTANCE * 2)
+                val decay = 1.0 - distanceFraction
+                result.add(auxVector.subVectors(boid.position, neighbor.position).normalize().multiplyScalar(decay))
+                count++
+            }
         }
+
+        if (count > 0) result.divideScalar(count.toDouble())
     }
 }

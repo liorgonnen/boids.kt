@@ -54,9 +54,9 @@ class DebugPlayground {
         add(light1, light2, plane, gridHelper)
         add(textObjects)
 
-        add(flock)
+        //add(flock)
 
-        //add(boid)
+        add(boid)
     }
 
     init {
@@ -75,14 +75,11 @@ class DebugPlayground {
     fun animate() {
         val time = clock.getDelta().toDouble()
 
-        cameraAnimator.update(time)
+        //cameraAnimator.update(time)
 
-        flock.update(time)
+        //flock.update(time)
 
-        val f = CollisionAvoidanceBehavior.getSteeringForce(boid, emptySequence())
-        if (f.isNonZero) boid.applySteeringForce(f)
-
-        //boid.update(time)
+        boid.update(time)
 
         renderer.render(scene, camera)
 

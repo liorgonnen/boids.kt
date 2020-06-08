@@ -1,47 +1,45 @@
 package boids.behaviors
 
-import boids.BOID_MAX_ANGULAR_ACCELERATION
+import boids.BOID_MAX_ACCELERATION
+import boids.BOID_MAX_VELOCITY
 import boids.Boid
+import boids.ext.isNoneZero
+import boids.ext.isZero
+import boids.ext.zero
+import three.js.Vector3
 
-class SteeringForce(linearAcceleration: Double = 0.0, angularAcceleration: Double = 0.0) {
+class SteeringForce(val acceleration: Vector3 = Vector3()) {
 
-    val isZero get() = linearAcceleration == 0.0 && angularAcceleration == 0.0
+    val isZero get() = acceleration.isZero
 
     val isNonZero get() = !isZero
 
-    var linearAcceleration = linearAcceleration
-        set(value) {
-            field = value
-        }
+    fun set(from: Vector3) {
+        acceleration.copy(from)
+    }
 
-    var angularAcceleration = angularAcceleration
-        set(value) {
-            field = value.coerceIn(-BOID_MAX_ANGULAR_ACCELERATION, BOID_MAX_ANGULAR_ACCELERATION)
-        }
+    fun set(x: Double, y: Double, z: Double) {
+        acceleration.set(x, y, z)
+    }
 
     fun zero() {
-        linearAcceleration = 0.0
-        angularAcceleration = 0.0
+        acceleration.zero()
     }
 
     fun copy(other: SteeringForce) {
-        linearAcceleration = other.linearAcceleration
-        angularAcceleration = other.angularAcceleration
+        acceleration.copy(other.acceleration)
     }
 
     fun add(other: SteeringForce) {
-        linearAcceleration += other.linearAcceleration
-        angularAcceleration += other.angularAcceleration
+        acceleration.add(other.acceleration)
     }
 
     fun multiplyScalar(scalar: Double) = apply {
-        linearAcceleration *= scalar
-        angularAcceleration *= scalar
+        acceleration.multiplyScalar(scalar)
     }
 
     fun divideScalar(scalar: Double) = apply {
-        linearAcceleration /= scalar
-        angularAcceleration /= scalar
+        acceleration.divideScalar(scalar)
     }
 }
 
@@ -63,7 +61,7 @@ abstract class Behavior {
     /**
      * Auxiliary object to prevent object creation
      */
-    protected val result = SteeringForce()
+    private val result = SteeringForce()
 
     /**
      * If true and this behavior returns a non-zero force, the rest of the behaviors will be discarded
@@ -76,10 +74,23 @@ abstract class Behavior {
      * This function can return false to cancel out this behavior for the given boid
      * The goal is to make it as lightweight as possible and decide if [getSteeringForce] should be called
      */
-    open fun isEffective(boid: Boid, neighbors: Sequence<Boid>) = true
+    open fun isEffective(boid: Boid) = true
 
     /**
      * This method will not be called if [isEffective] returns false
      */
-    abstract fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): SteeringForce
+    fun getSteeringForce(boid: Boid, neighbors: Array<Boid>) = result.apply {
+        zero()
+
+        computeSteeringForce(boid, neighbors, result.acceleration)
+
+        if (result.acceleration.isNoneZero) result.acceleration
+            .normalize()
+            //.multiplyScalar(BOID_MAX_ACCELERATION)
+            .multiplyScalar(BOID_MAX_VELOCITY)
+            .sub(boid.velocity)
+            .clampLength(0, BOID_MAX_ACCELERATION)
+    }
+
+    abstract fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3)
 }

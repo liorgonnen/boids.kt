@@ -5,6 +5,7 @@ import boids.Boid
 import boids.CollisionDetector
 import three.js.Box3
 import three.js.Object3D
+import three.js.Vector3
 import kotlin.math.PI
 
 abstract class AbsCollisionAvoidanceBehavior : Behavior() {
@@ -21,23 +22,20 @@ abstract class AbsCollisionAvoidanceBehavior : Behavior() {
 
     fun add(obstacle: Object3D) { obstacles += Box3().setFromObject(obstacle) }
 
-    override fun isEffective(boid: Boid, neighbors: Sequence<Boid>)
+    override fun isEffective(boid: Boid)
             = boid.collidesWithAny(COLLISION_WHISKER_ANGLE) || boid.collidesWithAny(-COLLISION_WHISKER_ANGLE)
 
-    override fun getSteeringForce(boid: Boid, neighbors: Sequence<Boid>): SteeringForce {
-        result.zero()
+    override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
 
-        // Left whisker collision detection
-        boid.findEvasionAngle(COLLISION_WHISKER_ANGLE).also { angle ->
-            if (angle != 0.0) return result.apply { angularAcceleration = angle }
-        }
-
-        // Right whisker collision detection
-        boid.findEvasionAngle(-COLLISION_WHISKER_ANGLE).also { angle ->
-            if (angle != 0.0) return result.apply { angularAcceleration = angle }
-        }
-
-        return result
+//        // Left whisker collision detection
+//        boid.findEvasionAngle(COLLISION_WHISKER_ANGLE).also { angle ->
+//            if (angle != 0.0) return result.apply { angularAcceleration = angle }
+//        }
+//
+//        // Right whisker collision detection
+//        boid.findEvasionAngle(-COLLISION_WHISKER_ANGLE).also { angle ->
+//            if (angle != 0.0) return result.apply { angularAcceleration = angle }
+//        }
     }
 
     private fun Boid.findEvasionAngle(deltaAngle: Double)

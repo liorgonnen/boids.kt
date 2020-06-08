@@ -4,44 +4,8 @@ import boids.BOID_MAX_ACCELERATION
 import boids.BOID_MAX_VELOCITY
 import boids.Boid
 import boids.ext.isNoneZero
-import boids.ext.isZero
 import boids.ext.zero
 import three.js.Vector3
-
-class SteeringForce(val acceleration: Vector3 = Vector3()) {
-
-    val isZero get() = acceleration.isZero
-
-    val isNonZero get() = !isZero
-
-    fun set(from: Vector3) {
-        acceleration.copy(from)
-    }
-
-    fun set(x: Double, y: Double, z: Double) {
-        acceleration.set(x, y, z)
-    }
-
-    fun zero() {
-        acceleration.zero()
-    }
-
-    fun copy(other: SteeringForce) {
-        acceleration.copy(other.acceleration)
-    }
-
-    fun add(other: SteeringForce) {
-        acceleration.add(other.acceleration)
-    }
-
-    fun multiplyScalar(scalar: Double) = apply {
-        acceleration.multiplyScalar(scalar)
-    }
-
-    fun divideScalar(scalar: Double) = apply {
-        acceleration.divideScalar(scalar)
-    }
-}
 
 /**
  * A [Behavior] describes some characteristic that affects a boid's steering behavior.
@@ -61,7 +25,7 @@ abstract class Behavior {
     /**
      * Auxiliary object to prevent object creation
      */
-    private val result = SteeringForce()
+    private val result = Vector3()
 
     /**
      * If true and this behavior returns a non-zero force, the rest of the behaviors will be discarded
@@ -82,9 +46,9 @@ abstract class Behavior {
     fun getSteeringForce(boid: Boid, neighbors: Array<Boid>) = result.apply {
         zero()
 
-        computeSteeringForce(boid, neighbors, result.acceleration)
+        computeSteeringForce(boid, neighbors, result)
 
-        if (result.acceleration.isNoneZero) result.acceleration
+        if (result.isNoneZero) result
             .normalize()
             //.multiplyScalar(BOID_MAX_ACCELERATION)
             .multiplyScalar(BOID_MAX_VELOCITY)

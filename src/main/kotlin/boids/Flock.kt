@@ -1,7 +1,6 @@
 package boids
 
 import boids.behaviors.Behavior
-import boids.behaviors.SteeringForce
 import boids.ext.*
 import three.js.Group
 import three.js.Vector3
@@ -23,7 +22,7 @@ class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) : 
 //        Boid(position = Vector3(10, 3, HALF_SCENE_SIZE - 3), angle = 200.toRadians()),
 //    )
 
-    private val totalForce = SteeringForce() // Utility to prevent object creation
+    private val totalForce = Vector3() // Utility to prevent object creation
 
     init {
         boids.forEach { sceneObject.add(it) }
@@ -46,7 +45,7 @@ class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) : 
         behaviors.forEach nextBehavior@ {
             if (!it.isEffective(boid)) return@nextBehavior
 
-            val force: SteeringForce = it.getSteeringForce(boid, boids)
+            val force = it.getSteeringForce(boid, boids)
             if (force.isZero) return@nextBehavior
 
             if (it.overridesLowerPriorityBehaviors) {

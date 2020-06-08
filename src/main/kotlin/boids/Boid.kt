@@ -1,24 +1,11 @@
 package boids
 
-import boids.behaviors.SteeringForce
 import boids.ext.*
-import three.js.*
-import kotlin.math.max
-import kotlin.math.min
+import three.js.Face3
+import three.js.Geometry
+import three.js.Mesh
+import three.js.Vector3
 
-/**
- * Thoughts about boid's flight:
- * A boid is always at-flight. It cannot stop or have zero-speed at any given time
- * A boid has some natural "cruise speed"
- * When a boid is flying forward (relative to itself), if its current speed is lower than its cruising speed, it will
- * accelerate, until it reaches that speed
- *
- * Should the cruising speed be the boid's maximum speed? I'm thinking that it should be lower, and the only time a
- * boid will accelerate to the max speed it to join a distant flock
- *
- * When a boid needs to change its steering direction it will decelerate. The bigger the angle between the boids
- * current direction and its new steering direction, the more it will decelerate
- */
 class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) : Object3DHolder() {
 
     val id = uniqueId()
@@ -42,14 +29,13 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
 
     private var targetRoll = 0.0
 
-    private var steeringForce = SteeringForce()
+    private var steeringForce = Vector3()
 
     init {
         this.position = position
-        //sceneObject += seeAheadHelper
     }
 
-    fun applySteeringForce(force: SteeringForce) {
+    fun applySteeringForce(force: Vector3) {
         steeringForce.copy(force)
         if (steeringForce.isZero) velocity.multiplyScalar(1.1).clampLength(0, BOID_MAX_VELOCITY)
     }
@@ -62,10 +48,9 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
         updateSceneObject(time)
     }
 
-    private fun updateVelocityAndHeading(time: Double) = with (steeringForce) {
-        velocity.add(auxVector.copy(acceleration).multiplyScalar(time)).clampLength(0, BOID_MAX_VELOCITY)
+    private fun updateVelocityAndHeading(time: Double) {
+        velocity.add(auxVector.copy(steeringForce).multiplyScalar(time)).clampLength(0, BOID_MAX_VELOCITY)
         headingAngle = velocity.asAngle()
-        zero()
     }
 
     private fun updateRoll(time: Double) {
@@ -83,7 +68,17 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
         //translateZ(headingAngle * velocity.length().toDouble() * time)
     }
 
-    fun isInVisibleRange(target: Vector3, maxDistance: Double) = Math.isInVisibleRange(headingAngle, position, target, maxDistance)
+    fun isInVisibleRange(target: Vector3, maxDistance: Double): Boolean {
+        val halfVisibleRegionAngle = BOID_VISIBLE_REGION / 2.0
+        val targetAngle = auxVector.subVectors(target, position).asAngle()
+        val visibleRegionStartAngle = headingAngle - halfVisibleRegionAngle
+        val visibleRegionEndAngle = headingAngle + halfVisibleRegionAngle
+
+        inline fun targetInAngularRange() = targetAngle.isInAngleRange(visibleRegionStartAngle, visibleRegionEndAngle)
+        inline fun targetInDistance() = position.distanceToSquared(target) <= maxDistance.sqr
+
+        return targetInAngularRange() && targetInDistance()
+    }
 
     fun distanceTo(other: Boid) = position.distanceTo(other.position).toDouble()
 

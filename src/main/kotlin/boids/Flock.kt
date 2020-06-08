@@ -11,8 +11,8 @@ class Flock(numBoids: Int, private val behaviors: List<Behavior>) : Object3DHold
     override val sceneObject = Group()
 
     private val boids = (0 until numBoids).map { i ->
-        val pos = Vector3(-HALF_SCENE_SIZE + i * (SCENE_SIZE / NUM_BOIDS), 3.0, HALF_SCENE_SIZE - i)
-        val anchor = Vector3(0, 0, -HALF_SCENE_SIZE)
+        val pos = Vector3(-HALF_SCENE_SIZE + i * (SCENE_SIZE / NUM_BOIDS), BOID_FLIGHT_HEIGHT, HALF_SCENE_SIZE - i)
+        val anchor = Vector3(0, BOID_FLIGHT_HEIGHT, -HALF_SCENE_SIZE)
         Boid(position = pos, angle = anchor.sub(pos).asAngle())
     }.toTypedArray()
 

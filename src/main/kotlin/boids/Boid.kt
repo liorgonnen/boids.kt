@@ -16,10 +16,9 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
         get() = sceneObject.position
         private set(value) { sceneObject.position.copy(value) }
 
-    //private val seeAheadHelper = ArrowHelper(Z_AXIS, Vector3(0, 0, NOSE_Z), BOID_SEE_AHEAD_DISTANCE, 0xff0000)
     private val material = if (color == BOID_DEFAULT_COLOR) defaultMaterial else color.toMeshPhongMaterial()
 
-    override val sceneObject = Mesh(geometry, material)
+    override val sceneObject = Mesh(geometry, material).apply { castShadow = SHADOWS_ENABLED }
 
     val velocity = angle.toSpeedVector().multiplyScalar(BOID_MAX_VELOCITY)
 

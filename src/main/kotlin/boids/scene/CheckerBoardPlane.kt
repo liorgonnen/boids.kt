@@ -3,6 +3,7 @@ package boids.scene
 import boids.PLANE_COLOR1
 import boids.PLANE_COLOR2
 import boids.SCENE_SIZE
+import boids.SHADOWS_ENABLED
 import boids.ext.HALF_PI
 import boids.ext.toMeshPhongMaterial
 import three.js.Color
@@ -23,6 +24,8 @@ object CheckerBoardPlane {
                     for (f in 0 until 2)
                         faces[2 * (y * SEGMENTS + x) + f].color.set(COLORS[(x + y % 2) % 2])
         },
-        material = 0xffffff.toMeshPhongMaterial().apply { flatShading = true; vertexColors = true }
-    )
+        material = 0xaaaaaa.toMeshPhongMaterial().apply { vertexColors = true }
+    ).apply {
+        receiveShadow = SHADOWS_ENABLED
+    }
 }

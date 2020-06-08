@@ -5,6 +5,8 @@ import three.js.Face3
 import three.js.Geometry
 import three.js.Mesh
 import three.js.Vector3
+import kotlin.math.max
+import kotlin.math.min
 
 class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) : Object3DHolder() {
 
@@ -54,18 +56,19 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
     }
 
     private fun updateRoll(time: Double) {
-//        targetRoll = (steeringForce.angularAcceleration / BOID_MAX_ANGULAR_ACCELERATION) * BOID_MAX_ROLL
-//
-//        if (roll < targetRoll) roll = min(roll + time, targetRoll)
-//        if (roll > targetRoll) roll = max(roll - time, targetRoll)
+        val deltaAngle = velocity.asAngle() - steeringForce.asAngle()
+        val angleFraction = deltaAngle.coerceIn(-HALF_PI, HALF_PI) / HALF_PI
+        val forceFraction = steeringForce.length() / BOID_MAX_VELOCITY
+        targetRoll = angleFraction * forceFraction * BOID_MAX_ROLL
+
+        if (roll < targetRoll) roll = min(roll + time, targetRoll)
+        if (roll > targetRoll) roll = max(roll - time, targetRoll)
     }
 
     private fun updateSceneObject(time: Double) = with (sceneObject) {
-
         position.add(auxVector.copy(velocity).multiplyScalar(time))
         rotation.y = headingAngle
-        //rotation.z = roll
-        //translateZ(headingAngle * velocity.length().toDouble() * time)
+        rotation.z = roll
     }
 
     fun isInVisibleRange(target: Vector3, maxDistance: Double): Boolean {

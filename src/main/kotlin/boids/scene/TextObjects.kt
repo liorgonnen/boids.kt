@@ -1,5 +1,9 @@
-package boids
+package boids.scene
 
+import boids.ChangeCallback
+import boids.HALF_SCENE_SIZE
+import boids.Object3DHolder
+import boids.TEXT_COLOR1
 import boids.ext.boundingBox
 import boids.ext.plusAssign
 import boids.ext.toMeshPhongMaterial
@@ -18,7 +22,7 @@ class TextObjects(onChange: ChangeCallback? = null) : Object3DHolder(onChange) {
     }
 
     private fun onFontLoaded(font: Font) {
-        sceneObject += Mesh(createTextGeometry("Boids", font, HALF_SCENE_SIZE / 8, 10), 0xff00ff.toMeshPhongMaterial()).apply {
+        sceneObject += Mesh(createTextGeometry("Boids", font, HALF_SCENE_SIZE / 8, 10), TEXT_COLOR1.toMeshPhongMaterial()).apply {
             position.set(-boundingBox.max.x.toDouble() / 2, -boundingBox.min.y.toDouble(), 0)
         }
 

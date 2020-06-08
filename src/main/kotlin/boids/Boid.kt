@@ -58,7 +58,7 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
     private fun updateRoll(time: Double) {
         val deltaAngle = velocity.asAngle() - steeringForce.asAngle()
         val angleFraction = deltaAngle.coerceIn(-HALF_PI, HALF_PI) / HALF_PI
-        val forceFraction = steeringForce.length() / BOID_MAX_VELOCITY
+        val forceFraction = steeringForce.lengthSq() / BOID_MAX_VELOCITY_SQR
         targetRoll = angleFraction * forceFraction * BOID_MAX_ROLL
 
         if (roll < targetRoll) roll = min(roll + time, targetRoll)

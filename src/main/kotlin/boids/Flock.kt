@@ -6,7 +6,7 @@ import three.js.Group
 import three.js.Vector3
 import kotlin.math.min
 
-class Flock(private val numBoids: Int, private val behaviors: List<Behavior>) : Object3DHolder() {
+class Flock(numBoids: Int, private val behaviors: List<Behavior>) : Object3DHolder() {
 
     override val sceneObject = Group()
 

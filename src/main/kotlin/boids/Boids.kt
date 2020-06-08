@@ -2,6 +2,8 @@ package boids
 
 import boids.behaviors.*
 import boids.ext.*
+import boids.scene.CheckerBoardPlane
+import boids.scene.TextObjects
 import three.js.*
 import kotlin.browser.window
 
@@ -27,16 +29,11 @@ class Boids {
 
     private val cameraAnimator = CameraAnimator(camera)
 
-    private val renderer = WebGLRenderer().init()
-
-    private val gridHelper = GridHelper(SCENE_SIZE, 10, 0x606060, 0x666666).apply { position.y = 0.1 }
+    private val renderer = WebGLRenderer().init().apply { setClearColor(Color(SKY_COLOR)) }
 
     private val textObjects = TextObjects(::onTextObjectsCreated)
 
-    private val plane = Mesh(
-        geometry = PlaneGeometry(SCENE_SIZE, SCENE_SIZE).apply { rotateX(-HALF_PI) },
-        material = 0x222222.toMeshPhongMaterial().apply { flatShading = true }
-    )
+    private val plane = CheckerBoardPlane.create()
 
     private val light1 = DirectionalLight(0xffffff, 1).apply {
         position.set(0, 10, -HALF_SCENE_SIZE)
@@ -46,7 +43,7 @@ class Boids {
     private val light2 = HemisphereLight(0xffffff, 0x666666, 0.8)
 
     private val scene = Scene().apply {
-        add(light1, light2, plane, gridHelper)
+        add(light1, light2, plane)
         add(textObjects)
         add(flock)
     }

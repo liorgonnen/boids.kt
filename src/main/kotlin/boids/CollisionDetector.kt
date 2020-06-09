@@ -17,12 +17,6 @@ object CollisionDetector {
 
     private val auxIntersectionPoint = Vector3()
 
-//    fun collidesAny(sourcePosition: Vector3, sourceDirection: Double, maxDistance: Double, obstacles: Iterable<Box3>)
-//            = obstacles.any { collides(sourcePosition, sourceDirection, maxDistance, it) }
-//
-//    fun collidesAny(sourcePosition: Vector3, sourceDirection: Double, maxDistance: Double, vararg obstacles: Box3)
-//        = obstacles.any { collides(sourcePosition, sourceDirection, maxDistance, it) }
-
     fun collides(
         sourcePosition: Vector3,
         sourceDirection: Vector3,

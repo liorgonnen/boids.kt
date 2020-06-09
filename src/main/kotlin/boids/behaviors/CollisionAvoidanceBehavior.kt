@@ -3,16 +3,13 @@ package boids.behaviors
 import boids.BOID_SEE_AHEAD_DISTANCE
 import boids.Boid
 import boids.CollisionDetector
+import boids.ext.compareTo
+import boids.ext.normalized
 import three.js.Box3
 import three.js.Object3D
 import three.js.Vector3
-import kotlin.math.PI
 
 abstract class AbsCollisionAvoidanceBehavior : Behavior() {
-
-    companion object {
-        private const val COLLISION_WHISKER_ANGLE = 10.0 / 180.0 * PI
-    }
 
     private val obstacles = ArrayList<Box3>()
 
@@ -24,21 +21,18 @@ abstract class AbsCollisionAvoidanceBehavior : Behavior() {
 
     fun add(obstacle: Object3D) { obstacles += Box3().setFromObject(obstacle) }
 
-    //override fun isEffective(boid: Boid)
-           // = boid.collidesWithAny(COLLISION_WHISKER_ANGLE) || boid.collidesWithAny(-COLLISION_WHISKER_ANGLE)
-
     override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
-
-        obstacles.forEach { obstacle ->
+        obstacles.minBy { it.distanceToPoint(boid.position).toDouble() }?.let { obstacle ->
             val collides = CollisionDetector.collides(boid.position, boid.velocity, BOID_SEE_AHEAD_DISTANCE, obstacle, collisionPoint)
-            if (collides) {
 
+            if (collides) boid.velocity.apply {
+                if (z < 0.0 && collisionPoint.z == obstacle.max.z) result.set(x.normalized, 0, 1.0) // Approaching th wall from the front
+                else if (z > 0.0 && collisionPoint.z == obstacle.min.z) result.set(x.normalized, 0, -1.0) // Approaching th wall from the front
+                else if (x > 0.0 && collisionPoint.x == obstacle.min.x) result.set(-1.0, 0, z.normalized) // Approaching wall from the left
+                else if (x < 0.0 && collisionPoint.x == obstacle.max.x) result.set(1.0, 0, z.normalized) // Approaching wall from the left
             }
         }
     }
-
-//    private fun Boid.collidesWithAny(deltaAngle: Double)
-//            = CollisionDetector.collidesAny(position, headingAngle + deltaAngle, BOID_SEE_AHEAD_DISTANCE, obstacles)
 }
 
 object CollisionAvoidanceBehavior : AbsCollisionAvoidanceBehavior()

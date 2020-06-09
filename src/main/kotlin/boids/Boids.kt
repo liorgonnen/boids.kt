@@ -16,7 +16,7 @@ class Boids {
 
     private val flock = Flock(NUM_BOIDS, listOf(
         RemainInSceneBoundariesBehavior,
-        //CollisionAvoidanceBehavior,
+        CollisionAvoidanceBehavior,
         //WanderBehavior,
         SeparationBehavior,
         AlignmentBehavior,

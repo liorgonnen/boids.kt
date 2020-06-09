@@ -1,4 +1,4 @@
-package boids.ext
+ package boids.ext
 
 import three.js.Quaternion
 import three.js.Vector3

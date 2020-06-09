@@ -14,7 +14,9 @@ abstract class AbsCollisionAvoidanceBehavior : Behavior() {
         private const val COLLISION_WHISKER_ANGLE = 10.0 / 180.0 * PI
     }
 
-    val obstacles = ArrayList<Box3>()
+    private val obstacles = ArrayList<Box3>()
+
+    private val collisionPoint = Vector3()
 
     override val overridesLowerPriorityBehaviors = true
 
@@ -22,27 +24,21 @@ abstract class AbsCollisionAvoidanceBehavior : Behavior() {
 
     fun add(obstacle: Object3D) { obstacles += Box3().setFromObject(obstacle) }
 
-    override fun isEffective(boid: Boid)
-            = boid.collidesWithAny(COLLISION_WHISKER_ANGLE) || boid.collidesWithAny(-COLLISION_WHISKER_ANGLE)
+    //override fun isEffective(boid: Boid)
+           // = boid.collidesWithAny(COLLISION_WHISKER_ANGLE) || boid.collidesWithAny(-COLLISION_WHISKER_ANGLE)
 
     override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
 
-//        // Left whisker collision detection
-//        boid.findEvasionAngle(COLLISION_WHISKER_ANGLE).also { angle ->
-//            if (angle != 0.0) return result.apply { angularAcceleration = angle }
-//        }
-//
-//        // Right whisker collision detection
-//        boid.findEvasionAngle(-COLLISION_WHISKER_ANGLE).also { angle ->
-//            if (angle != 0.0) return result.apply { angularAcceleration = angle }
-//        }
+        obstacles.forEach { obstacle ->
+            val collides = CollisionDetector.collides(boid.position, boid.velocity, BOID_SEE_AHEAD_DISTANCE, obstacle, collisionPoint)
+            if (collides) {
+
+            }
+        }
     }
 
-    private fun Boid.findEvasionAngle(deltaAngle: Double)
-            = CollisionDetector.findEvasionAngle(position, headingAngle + deltaAngle, BOID_SEE_AHEAD_DISTANCE, obstacles)
-
-    private fun Boid.collidesWithAny(deltaAngle: Double)
-            = CollisionDetector.collidesAny(position, headingAngle + deltaAngle, BOID_SEE_AHEAD_DISTANCE, obstacles)
+//    private fun Boid.collidesWithAny(deltaAngle: Double)
+//            = CollisionDetector.collidesAny(position, headingAngle + deltaAngle, BOID_SEE_AHEAD_DISTANCE, obstacles)
 }
 
 object CollisionAvoidanceBehavior : AbsCollisionAvoidanceBehavior()

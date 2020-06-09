@@ -1,7 +1,10 @@
 package boids
 
 import boids.behaviors.*
-import boids.ext.*
+import boids.ext.add
+import boids.ext.aspectRatio
+import boids.ext.init
+import boids.ext.onResize
 import boids.scene.CheckerBoardPlane
 import boids.scene.TextObjects
 import three.js.*
@@ -29,7 +32,10 @@ class Boids {
 
     private val cameraAnimator = CameraAnimator(camera)
 
-    private val renderer = WebGLRenderer().init(enableShadows = true, clearColor = SKY_COLOR)
+    private val renderer = WebGLRenderer().init(
+        enableShadows = SHADOWS_ENABLED,
+        clearColor = SKY_COLOR
+    )
 
     private val textObjects = TextObjects(::onTextObjectsCreated)
 
@@ -38,14 +44,14 @@ class Boids {
     private val light1 = DirectionalLight(0xaaaaaa, 1).apply {
         position.set(0, HALF_SCENE_SIZE / 2, HALF_SCENE_SIZE / 4)
         castShadow = SHADOWS_ENABLED
-        shadow.camera.near = 0.5
-        shadow.camera.far = SCENE_SIZE
-        shadow.camera.left = -HALF_SCENE_SIZE
-        shadow.camera.bottom = -HALF_SCENE_SIZE
-        shadow.camera.right = HALF_SCENE_SIZE
-        shadow.camera.top = HALF_SCENE_SIZE
-//        shadow.mapSize.width = 1024
-//        shadow.mapSize.height = 1024
+        with (shadow.camera) {
+            near = 0.5
+            far = SCENE_SIZE
+            left = -HALF_SCENE_SIZE
+            bottom = -HALF_SCENE_SIZE
+            right = HALF_SCENE_SIZE
+            top = HALF_SCENE_SIZE
+        }
     }
 
     private val light2 = HemisphereLight(0xffffff, 0x666666, 0.8)

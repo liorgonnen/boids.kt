@@ -7,6 +7,8 @@ val X_AXIS = Vector3(1, 0, 0)
 val Y_AXIS = Vector3(0, 1, 0)
 val Z_AXIS = Vector3(0, 0, 1)
 
+val NEGATIVE_Y_AXIS = Vector3(0, -1, 0)
+
 const val TWO_PI = PI * 2.0
 const val HALF_PI = PI / 2.0
 const val DIR_NORTH = PI

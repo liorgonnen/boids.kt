@@ -9,3 +9,5 @@ Inspired by [Flocks, Herds, and Schools: A Distributed Behavioral Model](https:/
 Early work in progress but all the basic steering behaviors (separation, cohesion, alignment) and basic collision avoidance have already been implemented 
 
 ![Demo](readme/Boids2.gif)
+
+If you want to get started with 3D graphics using Kotlin JS and three.js, take a look at my [kotlin-three-js-starter](https://github.com/liorgonnen/kotlin-three-js-starter) project

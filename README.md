@@ -10,6 +10,6 @@ Early work in progress but all the basic steering behaviors (separation, cohesio
 
 See it live [here](http://gonnen.com/boids.kt/) 
 
-![Demo](readme/boids.png)
+![Demo](docs/images/boids.jpg)
 
 If you want to get started with 3D graphics using Kotlin JS and three.js, take a look at my [kotlin-three-js-starter](https://github.com/liorgonnen/kotlin-three-js-starter) project

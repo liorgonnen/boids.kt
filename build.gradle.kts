@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackOutput.Target.COMMONJS
 
 plugins {
-    id("org.jetbrains.kotlin.js") version "1.4-M1"
+    id("org.jetbrains.kotlin.js") version "1.4-M2"
 }
 
 group = "com.liorgonnen"
@@ -15,11 +15,12 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib-js"))
     api(project(":threejs_kt"))
+    api(project(":statsjs_kt"))
 }
 
 kotlin {
-    target {
+    js {
         browser()
-        produceExecutable()
+        binaries.executable()
     }
 }

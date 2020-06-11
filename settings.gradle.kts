@@ -10,4 +10,5 @@ pluginManagement {
 rootProject.name = "boids-kotlin-js"
 
 include("threejs_kt")
+include("statsjs_kt")
 

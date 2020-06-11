@@ -7,7 +7,10 @@ import boids.ext.init
 import boids.ext.onResize
 import boids.scene.CheckerBoardPlane
 import boids.scene.TextObjects
+import stats.js.Stats
+import stats.js.ext.measure
 import three.js.*
+import kotlin.browser.document
 import kotlin.browser.window
 
 class Boids {
@@ -36,6 +39,16 @@ class Boids {
         enableShadows = SHADOWS_ENABLED,
         clearColor = SKY_COLOR
     )
+
+    private val stats = Stats().apply {
+        showPanel(0) // 0: fps, 1: ms, 2: mb, 3+: custom
+        document.body?.appendChild(domElement)
+        with (domElement.style) {
+            position="fixed"
+            top="0px"
+            left="0px"
+        }
+    }
 
     private val textObjects = TextObjects(::onTextObjectsCreated)
 
@@ -76,13 +89,15 @@ class Boids {
     }
 
     fun animate() {
-        val time = clock.getDelta().toDouble()
+        stats.measure {
+            val time = clock.getDelta().toDouble()
 
-        cameraAnimator.update(time, flock.centerOfGravity)
+            cameraAnimator.update(time, flock.centerOfGravity)
 
-        flock.update(time)
+            flock.update(time)
 
-        renderer.render(scene, camera)
+            renderer.render(scene, camera)
+        }
 
         window.requestAnimationFrame { animate() }
     }

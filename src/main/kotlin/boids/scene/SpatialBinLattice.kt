@@ -2,14 +2,17 @@ package boids.scene
 
 import boids.BOID_SEE_AHEAD_DISTANCE
 import boids.Boid
+import boids.HALF_SCENE_SIZE
 import boids.SCENE_SIZE
+import three.js.Color
+import three.js.MeshPhongMaterial
 import three.js.Vector3
 
 object SpatialBinLattice {
 
     private const val BIN_SIZE = BOID_SEE_AHEAD_DISTANCE * 0.75
 
-    private const val NUM_BINS_PER_ROW = (SCENE_SIZE / BIN_SIZE).toInt() + 1
+    private const val NUM_BINS_PER_ROW = (SCENE_SIZE / BIN_SIZE).toInt()
 
     private val bins = Array(NUM_BINS_PER_ROW * NUM_BINS_PER_ROW) { BinItems() }
 
@@ -33,7 +36,7 @@ object SpatialBinLattice {
     fun getSpatialNeighbors(boid: Boid) = NeighborsIterator.forIndex(boid.binNode.binIndex)
 
     private fun Vector3.toBinIndex(): Int {
-        inline fun Number.toBinResolution() = this.toDouble().coerceIn(0.0, SCENE_SIZE).toInt() / NUM_BINS_PER_ROW
+        inline fun Number.toBinResolution() = ((toDouble() + HALF_SCENE_SIZE).coerceIn(0.0, SCENE_SIZE - 1) / BIN_SIZE).toInt()
         return y.toBinResolution() * NUM_BINS_PER_ROW + x.toBinResolution()
     }
 

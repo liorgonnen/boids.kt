@@ -27,9 +27,9 @@ abstract class AbsCollisionAvoidanceBehavior : Behavior() {
 
             if (collides) boid.velocity.apply {
                 if (z < 0.0 && collisionPoint.z == obstacle.max.z) result.set(x.normalized, 0, 1.0) // Approaching th wall from the front
-                else if (z > 0.0 && collisionPoint.z == obstacle.min.z) result.set(x.normalized, 0, -1.0) // Approaching th wall from the front
+                else if (z > 0.0 && collisionPoint.z == obstacle.min.z) result.set(x.normalized, 0, -1.0) // Approaching th wall from the back
+                else if (x < 0.0 && collisionPoint.x == obstacle.max.x) result.set(1.0, 0, z.normalized) // Approaching wall from the right
                 else if (x > 0.0 && collisionPoint.x == obstacle.min.x) result.set(-1.0, 0, z.normalized) // Approaching wall from the left
-                else if (x < 0.0 && collisionPoint.x == obstacle.max.x) result.set(1.0, 0, z.normalized) // Approaching wall from the left
             }
         }
     }

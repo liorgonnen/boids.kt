@@ -21,7 +21,7 @@ abstract class AbsCollisionAvoidanceBehavior : Behavior() {
 
     fun add(obstacle: Object3D) { obstacles += Box3().setFromObject(obstacle) }
 
-    override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
+    override fun computeSteeringForce(boid: Boid, neighbors: Iterator<Boid>, result: Vector3) {
         obstacles.minBy { it.distanceToPoint(boid.position).toDouble() }?.let { obstacle ->
             val collides = CollisionDetector.collides(boid.position, boid.velocity, BOID_SEE_AHEAD_DISTANCE, obstacle, collisionPoint)
 

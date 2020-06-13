@@ -1,6 +1,8 @@
 package boids
 
 import boids.ext.*
+import boids.scene.BinNode
+import boids.scene.SpatialBinLattice
 import three.js.Face3
 import three.js.Geometry
 import three.js.Mesh
@@ -11,6 +13,8 @@ import kotlin.math.min
 class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID_DEFAULT_COLOR) : Object3DHolder() {
 
     val id = uniqueId()
+
+    val binNode = BinNode(this)
 
     var position: Vector3
         get() = sceneObject.position
@@ -34,6 +38,7 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
 
     init {
         this.position = position
+        SpatialBinLattice.add(this)
     }
 
     fun applySteeringForce(force: Vector3) {
@@ -47,6 +52,8 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
         updateRoll(time)
 
         updateSceneObject(time)
+
+        SpatialBinLattice.update(this)
     }
 
     private fun updateVelocityAndHeading(time: Double) {
@@ -66,6 +73,7 @@ class Boid(position: Vector3 = Vector3(), angle: Double = 0.0, color: Int = BOID
 
     private fun updateSceneObject(time: Double) = with (sceneObject) {
         position.add(auxVector.copy(velocity).multiplyScalar(time))
+
         rotation.y = headingAngle
         rotation.z = roll
     }

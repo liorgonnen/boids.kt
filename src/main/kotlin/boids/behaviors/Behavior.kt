@@ -43,7 +43,7 @@ abstract class Behavior {
     /**
      * This method will not be called if [isEffective] returns false
      */
-    fun getSteeringForce(boid: Boid, neighbors: Array<Boid>) = result.apply {
+    fun getSteeringForce(boid: Boid, neighbors: Iterator<Boid>) = result.apply {
         zero()
 
         computeSteeringForce(boid, neighbors, result)
@@ -56,5 +56,5 @@ abstract class Behavior {
             .clampLength(0, BOID_MAX_ACCELERATION)
     }
 
-    abstract fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3)
+    abstract fun computeSteeringForce(boid: Boid, neighbors: Iterator<Boid>, result: Vector3)
 }

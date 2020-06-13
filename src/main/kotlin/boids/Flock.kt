@@ -2,6 +2,7 @@ package boids
 
 import boids.behaviors.Behavior
 import boids.ext.*
+import boids.scene.SpatialBinLattice
 import three.js.Group
 import three.js.Vector3
 import kotlin.math.min
@@ -33,19 +34,21 @@ class Flock(numBoids: Int, private val behaviors: List<Behavior>) : Object3DHold
     private val _centerOfGravity = Vector3()
     val centerOfGravity get(): Vector3 {
         _centerOfGravity.zero()
-        boids.forEach { _centerOfGravity.add(it.position) }
-        _centerOfGravity.divideScalar(boids.size)
+        for (n in boids.indices step 2) _centerOfGravity.add(boids[n].position)
+        _centerOfGravity.divideScalar(boids.size / 2)
         return _centerOfGravity
     }
 
     fun update(time: Double) = boids.forEach nextBoid@ { boid ->
         totalForce.zero()
 
+        val neighborsIterator = SpatialBinLattice.getSpatialNeighbors(boid)
+
         var totalWeight = 0.0
         behaviors.forEach nextBehavior@ {
             if (!it.isEffective(boid)) return@nextBehavior
 
-            val force = it.getSteeringForce(boid, boids)
+            val force = it.getSteeringForce(boid, neighborsIterator.rewind())
             if (force.isZero) return@nextBehavior
 
             if (it.overridesLowerPriorityBehaviors) {

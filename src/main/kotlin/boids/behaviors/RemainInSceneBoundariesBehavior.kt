@@ -17,7 +17,7 @@ object RemainInSceneBoundariesBehavior : Behavior() {
 
     override val overridesLowerPriorityBehaviors = true
 
-    override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
+    override fun computeSteeringForce(boid: Boid, neighbors: Iterator<Boid>, result: Vector3) {
         when {
             boid.position.z < FAR -> result.set(boid.velocity.x.normalized, 0, 1.0)
             boid.position.z > NEAR -> result.set(boid.velocity.x.normalized, 0, -1.0)

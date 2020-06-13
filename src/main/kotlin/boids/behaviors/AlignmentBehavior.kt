@@ -5,7 +5,7 @@ import three.js.Vector3
 
 object AlignmentBehavior : Behavior() {
 
-    override fun computeSteeringForce(boid: Boid, neighbors: Array<Boid>, result: Vector3) {
+    override fun computeSteeringForce(boid: Boid, neighbors: Iterator<Boid>, result: Vector3) {
         var count = 0
         neighbors.iterator().forEach { neighbor ->
             result.add(neighbor.velocity)

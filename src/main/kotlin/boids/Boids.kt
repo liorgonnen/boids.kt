@@ -6,6 +6,7 @@ import boids.ext.aspectRatio
 import boids.ext.init
 import boids.ext.onResize
 import boids.scene.CheckerBoardPlane
+import boids.scene.CylinderObjects
 import boids.scene.TextObjects
 import stats.js.Stats
 import stats.js.ext.measure
@@ -52,6 +53,8 @@ class Boids {
 
     private val textObjects = TextObjects(::onTextObjectsCreated)
 
+    private val cylinderObjects = CylinderObjects()
+
     private val plane = CheckerBoardPlane.create()
 
     private val light1 = DirectionalLight(0xaaaaaa, 1).apply {
@@ -74,6 +77,7 @@ class Boids {
         add(light2)
         add(plane)
         add(textObjects)
+        add(cylinderObjects)
         add(flock)
     }
 
@@ -84,8 +88,8 @@ class Boids {
         }
     }
 
-    private fun onTextObjectsCreated(what: Object3D) {
-        textObjects.sceneObject.children.forEach { CollisionAvoidanceBehavior.add(it) }
+    private fun onTextObjectsCreated(textObjects: Object3D) {
+        textObjects.children.forEach { CollisionAvoidanceBehavior.add(it) }
     }
 
     fun animate() {

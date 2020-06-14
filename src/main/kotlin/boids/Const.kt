@@ -7,7 +7,7 @@ const val DEBUG = false
 const val SHADOWS_ENABLED = false
 
 // Scene
-const val SCENE_SIZE = 400.0
+const val SCENE_SIZE = 500.0
 const val HALF_SCENE_SIZE = SCENE_SIZE / 2.0
 const val CAMERA_NEAR = 0.1
 const val CAMERA_FAR = SCENE_SIZE * 4
@@ -32,3 +32,4 @@ const val PLANE_COLOR2 = 0xCDC5DB
 const val BOID_DEFAULT_COLOR = 0x835285
 const val TEXT_COLOR1 = 0x734C8A
 const val SKY_COLOR = 0x4A4150
+const val CYLINDER_COLOR = 0x734C8A
